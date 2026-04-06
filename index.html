@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>智邦科技-企業策略 | Strategy Analysis of Accton</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+tailwind.config={
+  darkMode:'class',
+  theme:{
+    extend:{
+      colors: {
+        bcgGreen: '#004030',
+        bcgGold: '#D8C3A5',
+        bcgGreenDark: '#002b20',
+      },
+      fontFamily:{
+        sans:['Inter','sans-serif'],
+        serif:['Merriweather','serif']
+      }
+    }
+  }
+}
+</script>
+<style>
+@keyframes fadeInUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+.animate-fade-in{animation:fadeInUp .5s ease-out forwards}
+.perspective{perspective:1000px}
+.transform-style-3d{transform-style:preserve-3d}
+.backface-hidden{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.rotate-y-180{transform:rotateY(180deg)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#D8C3A5;border-radius:10px}
+.dark ::-webkit-scrollbar-thumb{background:#475569}
+::selection{background:#004030;color:#fff}
+.dark ::selection{background:#D8C3A5;color:#004030}
+body { -webkit-user-select: none; user-select: none; }
+</style>
+</head>
+<body class="bg-[#f4f4f4] dark:bg-[#121212] text-slate-800 dark:text-slate-200">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+/* ===== Security Hook ===== */
+const useSecurity = () => {
+  useEffect(() => {
+    // 1. Domain Lock (網域白名單綁定)
+    const allowedDomains = ['localhost', '127.0.0.1', '', 'lolopodcast.github.io']; // 留空字串允許本地檔案開啟
+    const currentDomain = window.location.hostname;
+    if (!allowedDomains.includes(currentDomain) && currentDomain !== "") {
+      window.location.href = 'https://www.accton.com'; // 導向官方網站
+    }
+
+    // 2. DevTools & Context Menu Blocker
+    const preventDefault = (e) => e.preventDefault();
+    document.addEventListener('contextmenu', preventDefault);
+    const blockKeys = (e) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+        (e.ctrlKey && (e.key === 's' || e.key === 'S')) ||
+        (e.ctrlKey && (e.key === 'p' || e.key === 'P')) ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J' || e.key === 'c' || e.key === 'C'))
+      ) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('keydown', blockKeys);
+    
+    // 3. Anti-Selection/Drag
+    document.addEventListener('selectstart', preventDefault);
+    document.addEventListener('dragstart', preventDefault);
+    document.addEventListener('copy', preventDefault);
+
+    return () => {
+      document.removeEventListener('contextmenu', preventDefault);
+      document.removeEventListener('keydown', blockKeys);
+      document.removeEventListener('selectstart', preventDefault);
+      document.removeEventListener('dragstart', preventDefault);
+      document.removeEventListener('copy', preventDefault);
+    };
+  }, []);
+};
+
+/* ===== SVG Icons ===== */
+const IconBookOpen=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>;
+const IconCheckCircle=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+const IconXCircle=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>;
+const IconGlobe=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>;
+const IconChevronRight=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"/></svg>;
+const IconChevronLeft=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="15 18 9 12 15 6"/></svg>;
+const IconMenu=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+const IconX=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+const IconMoon=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>;
+const IconSun=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
+const IconPlay=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+const IconSquare=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>;
+const IconActivity=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
+const IconTarget=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
+const IconShield=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+const IconMap=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>;
+const IconHome=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+const IconDownload=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+const IconRefreshCcw=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10"/><path d="M3.51 15A9 9 0 0 0 18.36 18.36L23 14"/></svg>;
+const IconLayers=({size=24,className=""})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>;
+
+/* ===== CONTENT & DATA DICTIONARY ===== */
+const DICT = {
+  UI: {
+    brand: { en: "ACCTON", tw: "智邦科技" },
+    title: { en: "Enterprise Strategy Analysis", tw: "企業策略綜合分析" },
+    executiveSummary: { en: "Executive Summary", tw: "執行摘要" },
+    interactiveLab: { en: "Interactive Research Lab", tw: "互動實驗室" },
+    externalResources: { en: "External Resources", tw: "外部學習資源" },
+    analytics: { en: "Learning Analytics", tw: "學習歷程分析" },
+    theme: { en: "Theme", tw: "主題" },
+    nextPage: { en: "Next Page", tw: "下一主題" },
+    prevPage: { en: "Previous Page", tw: "前一主題" },
+    highlights: { en: "Strategic Highlights", tw: "策略核心亮點" },
+    description: { en: "Detailed Description", tw: "詳細文字解說" },
+    flashcards: { en: "Concept Flashcards", tw: "翻轉學習卡" },
+    wrapUp: { en: "Wrap-up", tw: "總結回顧" },
+    quiz: { en: "Knowledge Quiz", tw: "模組知識檢定" },
+    clicks: { en: "Clicks", tw: "互動(點擊次)數" },
+    shown: { en: "Shown", tw: "已顯示" },
+    total: { en: "Total", tw: "總計" },
+    correct: { en: "Correct", tw: "答對" },
+    answered: { en: "Answered", tw: "已答" },
+    retry: { en: "Retry", tw: "重試 (Retry)" },
+    next: { en: "Next", tw: "下一個 (Next)" },
+    exportCSV: { en: "Export CSV", tw: "匯出 CSV 歷程" },
+    group: { en: "Group (e.g. G1)", tw: "組別 (例: G1-G12)" },
+    studentId: { en: "Student ID", tw: "學號 (例: 113212599)" },
+    name: { en: "Name", tw: "姓名 (例: Shihmin Lo)" },
+    timeSpent: { en: "Time Spent (s)", tw: "使用時間(秒)" },
+    cardRate: { en: "Cards Reviewed", tw: "學習卡使用率" },
+    quizRate: { en: "Quiz Score", tw: "測驗答對率" },
+    resetData: { en: "Reset Data", tw: "刷新記錄儲存" },
+    flipPrompt: { en: "Click to flip", tw: "點擊翻轉卡片" },
+    correctMsg: { en: "Excellent judgment!", tw: "判斷精確，觀念完全正確！" },
+    wrongMsg: { en: "Strategic miss. Please review.", tw: "判斷有誤，請重新審視本章理論。" }
+  },
+  OVERVIEW: {
+    title: { en: "Executive Summary", tw: "課程概要與執行摘要" },
+    content: {
+      en: "Welcome to the Strategic Analysis Report for Accton Technology Corporation. This interactive platform explores Accton's transformation from a traditional ODM/OEM network switch manufacturer into a global leader in AI networking infrastructure. Driven by the explosive demand for AI computing and the Open Compute Project (OCP) decoupling trends, Accton achieved record-breaking revenues in 2025 (248.2 billion NTD, 124% YoY growth).\n\nThrough modules TP0 to TP3, we analyze Accton's strategic pivot under its new dual-engine strategy: 'Manufacturing + R&D'. We dissect its macro-environmental challenges, such as geopolitical 'China+1' mandates and ESG Net Zero targets. Furthermore, we evaluate Accton's VRIN core competencies—specifically its advanced custom networking R&D and resilient global manufacturing—and its aggressive upward vertical integration into Co-Packaged Optics (CPO) and Rack-Level (L11) integration to mitigate hold-up risks.\n\nThis platform synthesizes rigid business strategies into 6 core themes, complemented by an Interactive Research Lab. Researchers will learn how Accton manages intense buyer/supplier power (Five Forces), navigates unrelated diversification (AI accelerator modules), and executes a Transnational geographic expansion strategy to thrive in a geopolitically fractured, AI-driven era.",
+      tw: "歡迎來到「智邦科技 (Accton) 企業策略綜合分析報告」。本互動式學習網頁旨在深度剖析智邦科技如何從傳統的網路設備 ODM/OEM 製造商，成功轉型為全球 AI 資料中心與高速網通基礎建設的霸主。受惠於全球 AI 算力需求的爆發以及開放網路 (OCP) 解耦趨勢，智邦在 2025 年創下營收 2,482 億元（年增 124%）、EPS 高達 47.13 元的歷史新高紀錄。\n\n透過 TP0 至 TP3 的策略模組，我們將系統化檢視智邦在新任總經理李訓德帶領下，從「純製造」轉向「製造+研發雙軸並進」的重大策略轉向。報告剖析了智邦面臨的總體環境挑戰，包含地緣政治下的「China+1」供應鏈重組與嚴苛的 ESG 淨零碳排要求。同時，我們深入評估其具備 VRIN 特質的核心能耐：高階客製化研發與全球製造韌性，並解釋其為何積極向上游垂直整合（投入 CPO 矽光子與 L11 機櫃級整合），以防範外部晶片巨頭的套牢風險 (Hold-up Problem)。\n\n本網頁將艱澀的商管策略轉化為 6 大核心主題，並內建動態高階管理「互動實驗室」。透過本平台的引導，您將深刻理解智邦科技如何應對強大的五力夾擊、推動 AI 加速器模組的相關多角化，並運用跨國型 (Transnational) 策略在全球變局中永續稱霸。"
+    }
+  },
+  THEMES: [
+    {
+      id: 1,
+      icon: IconBookOpen,
+      title: { en: "1. Corporate Profile & Strategic Transition (TP0)", tw: "1. 企業概況與轉型契機 (TP0)" },
+      highlights: { 
+        en: ["Record 2025 Revenue (248.2B NTD)", "Manufacturing + R&D Dual Engine", "Leadership in 800G/1.6T Switches"], 
+        tw: ["2025 營收創歷史新高 (2,482億)", "製造+研發雙軸並進策略", "800G/1.6T 高速交換器霸主"]
+      },
+      description: {
+        en: "Accton Technology Corporation, founded in 1988 in Taiwan's Hsinchu Science Park, has evolved from a traditional OEM/ODM manufacturer into a key player in the open networking domain. A major milestone in this transition has been its active contribution to the Open Compute Project (OCP), advocating for decoupled hardware and software solutions.\n\nIn 2025, fueled by the massive global expansion of AI computing power and high-speed data center upgrades, Accton experienced explosive growth. Consolidated revenue hit a record 248.27 billion NTD (a 124.8% YoY increase), while EPS soared to 47.13. Crucially, its product mix shifted drastically: 'Network Application Devices' (including AI accelerator cards) surpassed traditional 'Network Switches' to become the largest revenue contributor, accounting for over 61% of total revenue.\n\nTo sustain this momentum, Accton initiated a profound strategic pivot. Under the leadership of new President Li Xun-De, the company announced a ten-year core strategy shifting from pure 'Manufacturing' to a 'Manufacturing + R&D Dual Engine'. This entails massive global capacity expansion (over 2 billion NTD invested across Taiwan, Vietnam, the US, etc.) and deep investments in Rack-Level (L11) integration, ensuring Accton remains at the forefront of the AI infrastructure revolution.",
+        tw: "智邦科技創立於 1988 年，發跡於新竹科學園區。早期以 OEM/ODM 代工模式起家，隨後憑藉對技術的堅持，逐步轉型為全球開放網路 (Open Networking) 領域的關鍵領導者。透過積極參與開放運算計畫 (OCP)，智邦大力推動軟硬體解耦的網路解決方案，奠定了其在白牌網通市場的基礎。\n\n2025 年，受惠於全球 AI 算力需求的猛烈爆發與雲端資料中心的高速升級，智邦迎來了史無前例的爆發性成長。當年合併營收達 2,482.7 億元（年增 124.8%），每股盈餘 (EPS) 飆升至 47.13 元，獲利翻倍。更關鍵的是其營收結構的質變：「網路應用設備」（包含 AI 加速卡模組）的營收佔比首度超越傳統的「網路交換器」，高達 61.5%，成為集團最大的獲利引擎。\n\n為了延續此一成長動能並應對未來的技術挑戰，智邦啟動了深度的策略轉向。在新任總經理李訓德的帶領下，公司宣佈未來十年的核心策略將從傳統的「純製造」升級為「製造+研發雙軸並進」。這不僅包含斥資逾 20 億元在全球（台灣、越南、美國等）大舉擴廠，更宣告智邦將積極投入機櫃級整合 (L11) 的研發，確保在 AI 運算從伺服器級邁向機櫃級的典範轉移中，維持絕對的霸主地位。"
+      },
+      wrapUp: {
+        en: "Accton's successful pivot from a traditional ODM to an AI infrastructure leader is evidenced by its explosive 2025 financial performance, driven by high-margin AI accelerators and a dual-engine strategy.",
+        tw: "智邦從傳統 ODM 廠成功蛻變為 AI 基礎建設龍頭的軌跡，完美體現於其 2025 年的爆發性財報中。高毛利的 AI 加速卡與「製造+研發」雙軸策略，是推動這場轉型的核心引擎。"
+      },
+      cards: [
+        { term: {en:"ODM/OEM", tw:"ODM/OEM (委託代工)"}, def: {en:"Original Design/Equipment Manufacturing; Accton's foundational business model, producing customized hardware for clients.", tw:"委託設計/製造代工；智邦發跡的基礎商業模式，為大型品牌或雲端客戶提供客製化的硬體生產服務。"} },
+        { term: {en:"Open Compute Project (OCP)", tw:"開放運算計畫 (OCP)"}, def: {en:"An initiative to standardize and open-source data center hardware, where Accton leads in decoupled network solutions.", tw:"由科技巨頭發起的資料中心硬體開源計畫。智邦積極參與，推動軟硬體解耦，打破傳統品牌商的封閉系統。"} },
+        { term: {en:"Network Application Device", tw:"網路應用設備"}, def: {en:"Accton's fastest-growing segment in 2025 (over 61% rev), heavily driven by AI accelerator modules and smart NICs.", tw:"智邦 2025 年成長最猛烈、營收佔比最大 (逾61%) 的事業線，核心驅動力來自於高單價的 AI 加速卡與智慧網卡。"} },
+        { term: {en:"Dual-Engine Strategy", tw:"製造+研發雙軸並進"}, def: {en:"Accton's new 10-year strategy combining traditional manufacturing excellence with deep upstream R&D capabilities.", tw:"智邦新任總經理宣佈的十年大計：在維持極致製造效率的同時，大幅提升關鍵技術的自主研發能力，從代工走向技術整合。" } }
+      ],
+      quizzes: [
+        { q: {en: "In 2025, which product segment became Accton's largest revenue contributor?", tw: "在 2025 年，智邦科技的哪一項產品線超越了其他業務，成為最大營收貢獻來源？"}, options: {en: ["Traditional Broadband Networks", "Network Application Devices (AI Accelerators)", "Network Switches", "Wireless Access Points"], tw: ["傳統寬頻網路設備", "網路應用設備 (以 AI 加速卡為主)", "傳統網路交換器", "無線網路存取設備"]}, ans: 1 },
+        { q: {en: "What is the core strategic shift announced by Accton's new President?", tw: "智邦新任總經理李訓德宣佈，未來十年的核心策略轉向為何？"}, options: {en: ["Exiting the AI market", "Shifting from 'Manufacturing' to a 'Manufacturing + R&D Dual Engine'", "Becoming a software-only company", "Outsourcing all operations to competitors"], tw: ["徹底退出 AI 相關市場", "從純「製造」轉向「製造+研發雙軸並進」", "轉型為一家純軟體開發公司", "將所有製造營運全面委外給競爭對手"]}, ans: 1 },
+        { q: {en: "What initiative did Accton participate in to promote decoupled hardware solutions?", tw: "智邦科技積極參與下列哪一項計畫，以推動軟硬體解耦的開放網路解決方案？"}, options: {en: ["Closed Network Protocol", "Open Compute Project (OCP)", "Proprietary Chip Alliance", "Consumer Electronics Show"], tw: ["封閉式網路協定聯盟", "開放運算計畫 (OCP)", "專利晶片壟斷聯盟", "全球消費性電子展 (CES)"]}, ans: 1 },
+        { q: {en: "What does 'L11' refer to in Accton's recent R&D investments?", tw: "智邦近期大舉投入研發的「L11」，在 AI 基礎建設中指的是什麼層級的整合？"}, options: {en: ["Layer 11 Cybersecurity", "Rack-Level Integration", "11-Nanometer Chips", "Level 11 Autonomous Driving"], tw: ["第 11 層網路資安防護", "機櫃級整合 (Rack-Level Integration)", "11 奈米晶片製造製程", "Level 11 自動駕駛技術"]}, ans: 1 }
+      ]
+    },
+    {
+      id: 2,
+      icon: IconGlobe,
+      title: { en: "2. Macro Environment & Industry Value Chain (TP1)", tw: "2. 總體環境與產業價值鏈 (TP1)" },
+      highlights: { 
+        en: ["PESTEL: AI & Geopolitics", "China+1 & Supply Chain Resilience", "Net Zero & ESG Compliance"], 
+        tw: ["PESTEL：AI 科技與地緣政治", "China+1 與全球供應鏈韌性", "淨零碳排與 ESG 法規遵循"]
+      },
+      description: {
+        en: "A PESTEL analysis of Accton reveals two dominant forces: Technology and Politics/Legal. Technologically, the exponential demand for AI computing is driving the rapid upgrade of data centers. Technologies like 800G, 1.6T switches, and Co-Packaged Optics (CPO) are transitioning from theoretical to essential. This presents a massive opportunity for Accton, provided it can sustain heavy R&D investments to avoid technological obsolescence.\n\nPolitically, US-China tech wars and tariff barriers mandate immediate supply chain de-risking. The era of centralized production is dead. Accton is executing a complex 'China+1' strategy, dispersing its manufacturing footprint across Taiwan, Vietnam, the US, Mexico, and Southeast Asia to build critical resilience. Furthermore, stringent ESG mandates (Net Zero by 2050, 50% carbon cut by 2030) require the greening of this entire expanded supply chain.\n\nExamining the Industry Value Chain, Accton operates in the Midstream (ODM/EMS white-box manufacturing). Upstream lies the highly concentrated domain of critical chip designers (Nvidia, Broadcom), while Downstream is dominated by massive Cloud Service Providers (CSPs like Meta, AWS). The profit pool is shifting toward the extremes: upstream critical components and midstream high-value, customized integration (such as Accton's L11 rack integration). While the traditional networking market matures, the AI infrastructure sub-segment remains in explosive growth.",
+        tw: "透過 PESTEL 總體環境分析，可發現驅動智邦的兩大核心力量為「科技 (Technological)」與「政治/法律 (Political/Legal)」。在科技面，全球 AI 算力需求的指數級爆發，正強力驅動資料中心的規格升級。800G、1.6T 高速交換器以及共封裝光學 (CPO) 技術已成為市場剛需。這為智邦帶來了龐大商機，但也帶來了技術迭代過快、若研發落後便可能遭邊緣化的嚴峻威脅。\n\n在政治與法律面，中美科技戰與關稅壁壘迫使全球供應鏈必須進行深度的「去風險化 (De-risking)」。智邦正全面執行「China+1」策略，將產能大舉分散至台灣竹北、越南、美國、墨西哥與星馬等地，以建構無懈可擊的供應鏈韌性。此外，嚴苛的 ESG 環保法規（如承諾 2030 減碳 50%、2050 淨零碳排）也要求智邦必須在其龐大的跨國生產基地中全面導入綠電與減碳機制。\n\n檢視其產業價值鏈，智邦位於中游的「白牌網通設備與解決方案提供」。上游是由 Nvidia、Broadcom 等晶片巨頭高度壟斷的關鍵零組件；下游則是擁有極大採購規模的超大規模雲端服務供應商 (CSPs)。產業利潤池正往「上游關鍵晶片」與「中游高階客製化整合（如智邦的 L11 機櫃級整合）」兩端集中。整體而言，雖然傳統網通市場步入成熟期，但 AI 基礎建設細分市場正處於狂飆的「高速成長期」。"
+      },
+      wrapUp: {
+        en: "Accton must balance the rapid technological advancements in AI infrastructure with the geopolitical necessity of a fragmented, resilient global supply chain.",
+        tw: "智邦必須在 AI 基礎建設狂飆的科技升級中保持領先，同時精準應對地緣政治壓力，建構出具備高度韌性且符合 ESG 規範的全球碎裂化供應鏈。"
+      },
+      cards: [
+        { term: {en:"PESTEL Analysis", tw:"PESTEL 分析"}, def: {en:"A framework analyzing macro-environmental factors: Political, Economic, Social, Technological, Environmental, Legal.", tw:"總體環境分析架構，檢視政治、經濟、社會、科技、環境與法律等六大外部宏觀因素對企業的衝擊。"} },
+        { term: {en:"CPO (Co-Packaged Optics)", tw:"CPO (共封裝光學)"}, def: {en:"An advanced technology integrating optical transceivers directly with switch ASICs to reduce latency and power consumption.", tw:"將光收發模組與交換晶片直接封裝在一起的前瞻技術，能大幅降低 AI 運算中的傳輸延遲與能耗。"} },
+        { term: {en:"China+1 Strategy", tw:"China+1 策略"}, def: {en:"Diversifying supply chains away from single-country reliance to mitigate geopolitical and tariff risks.", tw:"跨國企業為規避地緣政治與貿易戰風險，將生產基地從單一國家分散至東南亞或美洲的供應鏈韌性佈局。"} },
+        { term: {en:"Profit Pool", tw:"利潤池 (Profit Pool)"}, def: {en:"The total profits earned at all points along the value chain. In networking, it shifts to upstream chips and midstream custom integration.", tw:"產業價值鏈上各環節所能攫取的總利潤。網通產業的利潤池正逐漸向上游關鍵晶片與中游高階技術整合集中。"} }
+      ],
+      quizzes: [
+        { q: {en: "Which 'PESTEL' factor primarily drives Accton's decision to build factories in the US and Mexico?", tw: "在 PESTEL 構面中，促使智邦遠赴美國與墨西哥設廠的最主要因素為何？"}, options: {en: ["Technological", "Political/Legal (Geopolitical de-risking)", "Sociocultural", "Environmental"], tw: ["科技因素 (追求最新的製造技術)", "政治/法律因素 (地緣政治避險與關稅考量)", "社會文化因素", "環境因素"]}, ans: 1 },
+        { q: {en: "Where does Accton operate within the Networking Industry Value Chain?", tw: "在網通產業價值鏈中，智邦科技主要位居哪一個環節？"}, options: {en: ["Upstream (Core Chip Design)", "Midstream (Equipment Manufacturing & Integration)", "Downstream (End-Consumer Retail)", "It does not operate in this industry"], tw: ["上游 (核心網路晶片設計)", "中游 (網通設備代工製造與技術整合)", "下游 (終端個人消費者零售)", "智邦完全不屬於這個產業價值鏈"]}, ans: 1 },
+        { q: {en: "What is Accton's Net Zero target year for ESG compliance?", tw: "為符合 ESG 規範，智邦承諾在西元哪一年達成「淨零碳排」的終極目標？"}, options: {en: ["2025", "2030", "2050", "2100"], tw: ["2025 年", "2030 年", "2050 年", "2100 年"]}, ans: 2 },
+        { q: {en: "Why is the traditional networking market 'Mature' while Accton grows?", tw: "為何整體傳統網通市場已步入「成熟期」，智邦卻能維持爆發性成長？"}, options: {en: ["Accton sells to retail stores", "Because the specific sub-segment of 'AI Infrastructure' is in explosive growth", "Accton lowered its prices to zero", "Competitors stopped manufacturing"], tw: ["因為智邦專攻便利商店零售通路", "因為智邦專注的「AI 資料中心基礎建設」細分市場正處於爆發性成長期", "因為智邦將所有產品免費贈送", "因為全球所有的競爭對手都突然停產了"]}, ans: 1 }
+      ]
+    },
+    {
+      id: 3,
+      icon: IconShield,
+      title: { en: "3. Porter's Five Forces & Competition (TP1)", tw: "3. 波特五力與產業競合分析 (TP1)" },
+      highlights: { 
+        en: ["High Buyer Power (CSPs)", "Med-High Supplier Power (Nvidia)", "Intense Rivalry (Quanta, Wistron)"], 
+        tw: ["極高買方議價力 (雲端巨頭)", "中高供應商議價力 (晶片大廠)", "激烈的現有競爭者廝殺"]
+      },
+      description: {
+        en: "Applying Porter's Five Forces analysis reveals a highly pressurized competitive landscape for Accton.\n\nFirst, the Bargaining Power of Buyers is Extremely High. Accton's revenue is heavily concentrated among a few 'Hyperscalers' (Cloud Service Providers like Meta, AWS). These mega-clients wield immense order volumes, making them highly price-sensitive and demanding regarding extreme customization and tight delivery schedules. Accton mitigates this power by providing irreplaceable, high-value AI integration solutions.\n\nSecond, the Bargaining Power of Suppliers is Medium-to-High. The upstream supply of critical networking chips and optical components is highly concentrated (e.g., Nvidia, Broadcom). These tech giants possess monopolistic control over vital AI infrastructure components. The high switching costs and deep technical integration required mean Accton has limited negotiating room, making supply chain stability a critical vulnerability.\n\nThird, Rivalry among Existing Competitors is Medium-High. In the white-box networking and AI server space, Accton faces fierce competition from other Taiwanese heavyweights like Quanta and Wistron. While Accton holds a technological edge in 800G switching and open networking, the resource similarity among these firms is high. The competition centers on R&D speed, cost control, and the agility to execute global CapEx. Consequently, Accton's 'Position' is an aggressive attacker (investing heavily in next-gen tech) coupled with a collaborative partner (co-developing with CSPs).",
+        tw: "套用波特五力分析 (Porter's Five Forces)，揭示了智邦身處一個充滿壓迫感的競合環境。\n\n首先，「買方議價能力」極高。智邦的營收高度集中於少數幾家超大規模雲端服務供應商 (Hyperscalers，如 Meta、AWS)。這些超級巨頭挾著海量的採購訂單，對報價極度敏感，並對產品的客製化深度與交期有嚴苛要求。智邦必須藉由提供不可或缺的高附加價值 AI 整合方案，才能在夾縫中緩衝買方的無情壓價。\n\n其次，「供應商議價能力」中偏高。上游關鍵的網路交換晶片與光學元件供應商高度集中（如 Nvidia、Broadcom）。這些科技巨擘在 AI 基礎設施的底層元件上具備近乎壟斷的地位。由於深度技術綁定導致的高昂轉換成本，智邦的談判籌碼受限，關鍵零組件的穩定供應成為極具風險的軟肋。\n\n第三，「現有競爭者威脅」中高。在白牌網通與 AI 伺服器代工市場，智邦面臨廣達 (Quanta)、緯創 (Wistron) 等台灣系統廠重兵集結的激烈廝殺。儘管智邦在 800G 交換器與開放網路領域具備技術領先優勢，但同業間的「資源相似性」極高。競爭焦點完全鎖定在研發速度、極致的成本控管以及全球產能佈建的執行力。為此，智邦採取了「積極攻擊（重金投資次世代技術）」與「策略合作（與 CSP 深度協同開發）」並存的競爭姿態。"
+      },
+      wrapUp: {
+        en: "Trapped between monopolistic chip suppliers and powerful mega-buyers, Accton survives by transitioning from a mere manufacturer to an indispensable tech integration partner.",
+        tw: "深陷於上游強勢晶片商與下游砍價巨頭的夾擊之中，智邦的生存之道在於從單純的代工製造廠，徹底蛻變為客戶不可或缺的高階技術整合夥伴。"
+      },
+      cards: [
+        { term: {en:"Porter's Five Forces", tw:"波特五力分析"}, def: {en:"A strategic framework evaluating Rivalry, Buyer Power, Supplier Power, Threat of Entry, and Threat of Substitutes.", tw:"經典的產業競爭分析架構，評估：現有競爭者、買方議價力、供應商議價力、潛在進入者與替代品威脅。"} },
+        { term: {en:"High Buyer Power", tw:"高買方議價能力"}, def: {en:"Occurs when mega-clients (CSPs) account for massive order volumes, allowing them to dictate terms and squeeze margins.", tw:"當營收極度仰賴少數超級巨頭 (CSPs) 時，買方能挾量砍價，強勢壓縮代工廠的毛利空間。"} },
+        { term: {en:"Hyperscalers", tw:"超大規模雲端供應商"}, def: {en:"Massive cloud operators like AWS, Meta, or Google that build enormous data centers and dictate custom hardware needs.", tw:"如 AWS、Meta、Google 等擁有極大海量數據中心的雲端營運巨頭，是智邦白牌網通設備的終極大客戶。"} },
+        { term: {en:"Resource Similarity", tw:"資源相似性"}, def: {en:"The degree to which competitors (like Accton, Quanta) possess comparable capabilities and capital in a specific market.", tw:"競爭對手（如智邦與廣達）在資本、製造能力與研發底蘊上的相似程度。相似度越高，競爭越趨近紅海肉搏戰。"} }
+      ],
+      quizzes: [
+        { q: {en: "In the Five Forces framework, why is Supplier Power considered Medium-High for Accton?", tw: "在五力分析中，為何智邦面臨的「供應商議價能力」被評估為中偏高？"}, options: {en: ["Because Accton uses standard plastic parts", "Because critical networking and AI chips are monopolized by a few giants like Nvidia and Broadcom", "Because suppliers are desperate to sell", "Because there are thousands of chipmakers globally"], tw: ["因為智邦只採購最普通的塑膠外殼", "因為關鍵網路交換晶片與 AI 晶片高度集中於 Nvidia 等少數幾家巨頭手中", "因為上游供應商正面臨破產，急於賤賣庫存", "因為全球有數千家廠商都能生產高階 AI 晶片"]}, ans: 1 },
+        { q: {en: "Who represents the 'High Buyer Power' in Accton's business model?", tw: "在智邦的商業模式中，誰代表了那股強大的「買方議價能力」？"}, options: {en: ["Local computer repair shops", "Hyperscalers (Cloud Service Providers like Meta)", "Individual retail consumers", "Component suppliers"], tw: ["地方型的電腦維修小商店", "超大規模雲端服務供應商 (Hyperscalers，如 Meta)", "一般終端個人消費者", "上游的基礎電子零件供應商"]}, ans: 1 },
+        { q: {en: "How does Accton defend against intense rivalry from companies like Quanta and Wistron?", tw: "面對廣達、緯創等同業的激烈競爭，智邦主要透過何種策略建立防禦壁壘？"}, options: {en: ["By lowering prices to generate massive losses", "By maintaining a technological edge in 800G/1.6T and Rack-Level integration", "By switching to producing smartphones", "By refusing to sell any products"], tw: ["透過流血削價競爭，刻意製造鉅額虧損", "透過在 800G/1.6T 交換器與機櫃級整合上維持絕對的技術領先", "透過全面放棄網通，轉型生產智慧型手機", "透過拒絕向任何客戶出貨來抵制競爭"]}, ans: 1 },
+        { q: {en: "What strategic posture does Accton adopt in this competitive environment?", tw: "在如此險惡的競合環境中，智邦採取了何種「競爭姿態 (Posture)」？"}, options: {en: ["Passive retreat", "Aggressive technological attacker and collaborative ecosystem partner", "Monopolistic dictator", "Government-subsidized bystander"], tw: ["消極撤退，準備退出市場", "積極的技術攻擊者（重金研發）與策略合作夥伴（協同開發）並存", "絕對壟斷的獨裁者", "完全依賴政府補貼的旁觀者"]}, ans: 1 }
+      ]
+    },
+    {
+      id: 4,
+      icon: IconTarget,
+      title: { en: "4. VRIN Core Competencies & Dynamics (TP2)", tw: "4. VRIN 核心能耐與動態能力 (TP2)" },
+      highlights: { 
+        en: ["VRIN: Custom R&D & Global Scale", "Social Complexity with CSPs", "Sensing, Seizing, Transforming"], 
+        tw: ["VRIN：高階客製研發與全球製造", "與雲端巨頭的社會複雜性", "感知、掌握與重組的動態能力"]
+      },
+      description: {
+        en: "To assess Accton's sustainable competitive advantage, we apply the VRIN framework to its two primary resources: 1. Advanced Custom R&D (Core Tech) and 2. Resilient Global Manufacturing.\n\nAre these resources 'Valuable'? Yes. They directly enabled Accton's explosive 248B NTD revenue by meeting the massive demands of AI scale-out. Are they 'Rare'? Yes. Few ODMs can execute 800G mass production while simultaneously managing global footprint shifts. Crucially, are they 'Inimitable'? Yes, due to Path Dependence and Social Complexity. Accton's 30+ year history and its incredibly deep, trust-based collaborative development cycles with top CSPs cannot be simply bought or replicated by competitors. Finally, they are 'Non-substitutable'; currently, there are no alternative manufacturing models that can deliver this level of high-speed networking customization at scale.\n\nHowever, in the AI era, static resources depreciate rapidly. Accton survives through robust Dynamic Capabilities. It excelled in 'Sensing'—identifying the limits of traditional broadband and accurately predicting the AI/HPC networking explosion. It acted decisively in 'Seizing' this opportunity by aggressively executing capital expenditures for global expansion and early 1.6T investments. Finally, it is currently 'Transforming'—overcoming organizational inertia by fundamentally reconfiguring its DNA from a 'manufacturing-centric' firm to a 'manufacturing + R&D dual-engine' technology orchestrator.",
+        tw: "為了評估智邦是否具備永續的競爭優勢，我們將 VRIN 架構套用於其兩大核心能耐：1. 高階網通設備客製化研發（核心技術）與 2. 具韌性的全球化製造與供應鏈管理。\n\n這些能力「有價值 (Valuable)」嗎？絕對是。它們直接創造了智邦 2,482 億元的歷史級營收，完美承接了 AI 算力的海量需求。它們「稀少 (Rare)」嗎？是的，全球鮮少有 ODM 廠能同時精通 800G 量產並具備龐大的全球調度能力。最關鍵的是，它們「難以模仿 (Inimitable)」嗎？是的，這歸功於歷史的路徑依賴與「社會複雜性」。智邦 30 多年累積的隱性知識，以及與頂級雲端巨頭間深不可測的協同開發互信關係，是競爭對手用錢也砸不出來的護城河。最後，它們「難以替代 (Non-substitutable)」；目前市場上尚無其他模式能大規模交付如此極致客製化的高速網通設備。\n\n然而，在 AI 時代，靜態資源的折舊極快。智邦的長盛不衰端賴其強悍的「動態能力 (Dynamic Capabilities)」。在「感知 (Sensing)」上，經營層精準洞悉了傳統寬頻的極限與 AI 算力基礎設施的大爆發。在「掌握 (Seizing)」上，智邦展現驚人決斷力，火速砸下鉅資擴建全球產能並搶先投資 1.6T 規格。最後，智邦正積極進行「重組 (Transforming)」——努力克服組織慣性，從傳統「以製造為尊」的 DNA，徹底重塑為「製造+研發雙軸並進」的科技整合巨頭。"
+      },
+      wrapUp: {
+        en: "Accton's VRIN moat is forged from decades of complex trust with CSPs, but its survival relies entirely on its dynamic capability to sense tech shifts and transform its corporate DNA.",
+        tw: "智邦的 VRIN 護城河是由數十年與雲端巨頭交織的複雜信任所鑄造，但其永續霸業，完全仰賴於它能敏銳感知科技巨浪並果斷重組企業 DNA 的動態能力。"
+      },
+      cards: [
+        { term: {en:"VRIN Framework", tw:"VRIN 分析架構"}, def: {en:"Evaluates resources on being Valuable, Rare, Inimitable, and Non-substitutable to determine competitive advantage.", tw:"評估企業資源是否具備：有價值、稀少、難以模仿、難以替代四項特質，以判定其永續競爭優勢的經典架構。"} },
+        { term: {en:"Social Complexity", tw:"社會複雜性"}, def: {en:"Deep trust and collaborative relationships built with clients over decades; a major barrier to imitation.", tw:"歷經長年與頂級客戶建立的深厚信任、默契與協同開發文化，這是競爭對手即使擁有龐大資金也無法輕易複製的模仿障礙。"} },
+        { term: {en:"Dynamic Capabilities", tw:"動態能力"}, def: {en:"The firm's ability to Sense, Seize, and Transform its resources to adapt to rapidly changing external environments.", tw:"企業為因應快速變動的外部環境，持續「感知 (Sensing)、掌握 (Seizing) 與重組 (Transforming)」內外部資源的適應能力。"} },
+        { term: {en:"Organizational Inertia", tw:"組織慣性"}, def: {en:"The dangerous tendency to stick to old success formulas (e.g., pure manufacturing), which Accton is combating.", tw:"過去成功的企業固執於既有營運軌跡的危險傾向（如固守純代工思維）。智邦正透過雙軸策略強力克服此一慣性。"} }
+      ],
+      quizzes: [
+        { q: {en: "Why is Accton's relationship with Meta/Amazon considered 'Inimitable' in the VRIN framework?", tw: "在 VRIN 架構中，為何智邦與 Meta/Amazon 等巨頭的合作關係被認為是「難以模仿」的？"}, options: {en: ["Because it is protected by a global government treaty", "Due to complex social complexity and decades of path-dependent collaborative trust", "Because Accton gives products away for free", "Because Accton is the only company in the world"], tw: ["因為這受到全球聯合國政府條約的絕對保護", "歸功於長期的路徑依賴，以及深不可測的協同開發「社會複雜性」信任", "因為智邦的產品完全免費贈送給這些巨頭", "因為智邦是地球上唯一存在的一家公司"]}, ans: 1 },
+        { q: {en: "Accton accurately recognizing the shift from traditional broadband to AI infrastructures corresponds to which Dynamic Capability?", tw: "智邦精準體認到從傳統寬頻走向 AI 基礎設施的典範轉移，這對應了動態能力中的哪一個構面？"}, options: {en: ["Sensing (感知)", "Seizing (掌握)", "Transforming (重組)", "Divesting (剝離)"], tw: ["感知 (Sensing)", "掌握 (Seizing)", "重組 (Transforming)", "剝離 (Divesting)"]}, ans: 0 },
+        { q: {en: "Which action represents Accton 'Transforming' its resources?", tw: "下列哪一項具體行動代表了智邦正在「重組 (Transforming)」其企業資源？"}, options: {en: ["Continuing to do exactly what it did in 1995", "Shifting its core DNA from a pure 'manufacturing' mindset to a 'manufacturing + R&D dual engine'", "Selling all of its factories", "Ignoring the Open Compute Project"], tw: ["繼續堅持 1995 年以來的每一項傳統作業流程", "將企業 DNA 從傳統「純製造」思維，重塑為「製造+研發雙軸並進」", "全面變賣全球所有的實體廠房與資產", "徹底無視並退出開放運算計畫 (OCP)"]}, ans: 1 },
+        { q: {en: "Are Accton's resources considered 'Substitutable' according to the analysis?", tw: "根據分析，智邦的核心能耐被認為是「容易被替代 (Substitutable)」的嗎？"}, options: {en: ["Yes, anyone can build a data center switch", "No, they are Non-substitutable because alternative manufacturing models cannot currently deliver such high-speed customization at scale", "Yes, smartphones have replaced network switches", "No, because the government bans all substitutes"], tw: ["是的，任何人都能在自家後院組裝出資料中心交換器", "否，它們難以替代，因為目前市場上尚無其他代工模式能大規模交付如此極致的高速客製化", "是的，因為現在智慧型手機已經完全取代了網路交換器的功能", "否，因為政府立法嚴格禁止任何替代品的出現"]}, ans: 1 }
+      ]
+    },
+    {
+      id: 5,
+      icon: IconLayers,
+      title: { en: "5. Corporate Strategy: Integration & Expansion (TP3)", tw: "5. 企業策略：垂直整合與多角化 (TP3)" },
+      highlights: { 
+        en: ["TCE & Hold-up Problem", "Vertical Integration: CPO/L11 R&D", "Related Diversification: AI Modules"], 
+        tw: ["交易成本理論與套牢問題", "向上垂直整合：投入 CPO/L11", "相關多角化：AI 加速器模組"]
+      },
+      description: {
+        en: "At the Corporate Strategy level, Accton is making aggressive moves, best analyzed through Transaction Cost Economics (TCE). In the AI era, critical components like Co-Packaged Optics (CPO) and Rack-Level (L11) integration require extreme 'Asset Specificity'. The technology is highly customized, and the geopolitical environment creates severe 'Uncertainty'. If Accton relies purely on external suppliers for these advanced components, it faces a massive 'Hold-up Problem'—the risk that monopolistic chipmakers could exploit their leverage, causing supply disruptions or destroying margins. Therefore, driven by high asset specificity, high transaction frequency, and high uncertainty, Accton is aggressively pursuing Upstream Vertical Integration via massive internal R&D (Organic Growth) to internalize these capabilities.\n\nSimultaneously, Accton is executing a 'Related Diversification' strategy. By expanding from traditional Network Switches into 'Network Application Devices' (specifically AI Accelerator Modules), Accton leverages its existing core competencies in high-speed transmission, thermal management, and CSP relationships. The end markets and technologies are highly related. This creates immense 'Economies of Scope', allowing Accton to offer a comprehensive one-stop-shop AI infrastructure solution.\n\nViewing this through the BCG Growth-Share Matrix: The traditional Network Switch business functions as a 'Cash Cow' transitioning into a 'Star' (thanks to 800G upgrades). The newly expanded AI Accelerator Module business is a massive 'Star' experiencing explosive growth. Accton's capital allocation strategy is precise: funnel resources into R&D to defend these Stars and ensure dominance in the next-generation infrastructure.",
+        tw: "在集團策略層級，智邦正展開極具野心的佈局，這能透過「交易成本理論 (TCE)」得到完美解釋。在 AI 時代，諸如共封裝光學 (CPO) 與 L11 機櫃級整合等關鍵技術，具備極高的「資產專屬性」。這些技術高度客製化，且身處地緣政治極端「不確定性」的環境中。若智邦將這些前瞻環節完全仰賴外部供應商，將面臨毀滅性的「套牢問題 (Hold-up Problem)」——供應商可能趁機敲竹槓、威脅斷鏈或無情吞噬毛利。因此，在高專屬性、高交易頻率與高不確定性的驅動下，智邦強勢啟動了「向上游垂直整合」，透過龐大的內部自主研發（有機成長），將這些關鍵核心技術內部化。\n\n同時，智邦也精準執行了「相關多角化」策略。從傳統的「網路交換器」大舉跨足「網路應用設備（特別是 AI 加速器模組）」，智邦極限利用了其在高速訊號傳輸、散熱設計與雲端客戶關係上的既有核心能耐。新舊市場的技術與客群高度重疊，創造了龐大的「範疇經濟 (Economies of Scope)」，讓智邦能提供客戶一站式的 AI 基礎設施解決方案。\n\n套用 BCG 波士頓矩陣分析：傳統的高速網路交換器事業是穩健噴發現金的「金牛」，並藉由 800G 升級維持「明星」光環；而新跨足的 AI 加速器模組，則是處於爆發性成長的終極「明星事業」。智邦的資本配置極為明確：將龐大資源猛烈挹注於研發，誓死捍衛這些明星事業在次世代基建的絕對統治權。"
+      },
+      wrapUp: {
+        en: "By aggressively pursuing upstream vertical integration into CPO/L11, Accton shields itself from hold-up risks, while related diversification into AI modules creates explosive new 'Star' growth engines.",
+        tw: "透過猛烈向上游垂直整合（投入 CPO 與 L11 研發），智邦成功為自己架起防禦套牢風險的盾牌；同時，向 AI 模組的相關多角化，則為集團點燃了爆發性的「明星」成長引擎。"
+      },
+      cards: [
+        { term: {en:"Asset Specificity", tw:"資產專屬性 (TCE)"}, def: {en:"Highly customized, non-redeployable investments (like L11 integration). High specificity drives vertical integration.", tw:"為特定技術量身打造的專屬投資（如 L11 研發）。資產專屬性越高，被外部供應商套牢的風險越大，強烈驅動內部垂直整合。"} },
+        { term: {en:"Hold-up Problem", tw:"套牢問題 (TCE)"}, def: {en:"The risk that an opportunistic supplier exploits a firm's dependence on a highly specialized component.", tw:"當企業過度依賴外部供應商提供極度專屬的關鍵技術時，供應商可能趁機敲竹槓或威脅斷鏈的巨大營運風險。"} },
+        { term: {en:"Related Diversification", tw:"相關多角化"}, def: {en:"Expanding into new markets/products that share significant technological or customer overlap with core business.", tw:"企業跨足新產品市場（如 AI 加速卡），且新舊事業在技術底蘊或終端客群上具備高度重疊與綜效的擴張策略。"} },
+        { term: {en:"Star Business (BCG)", tw:"明星事業 (BCG)"}, def: {en:"A business with high market share in a rapidly growing industry, requiring heavy investment to maintain dominance.", tw:"在爆發成長的市場中握有極高市佔率的事業體（如智邦的 AI 模組）。亟需集團猛烈挹注資金以鞏固霸主地位。"} }
+      ],
+      quizzes: [
+        { q: {en: "According to Transaction Cost Economics, why does Accton heavily invest in internal CPO and L11 R&D?", tw: "依據交易成本理論 (TCE)，智邦為何選擇在內部砸下重金自主研發 CPO 與 L11 機櫃級整合技術？"}, options: {en: ["To intentionally lose money for tax purposes", "Due to high Asset Specificity, avoiding the 'Hold-up Problem' from powerful external chipmakers", "Because those technologies are incredibly easy and cheap to buy from anyone", "Because they want to pivot away from networking completely"], tw: ["為了刻意讓集團虧損以達到避稅的財務目的", "因為具備極高的「資產專屬性」，內部化可徹底避免被強勢外部晶片供應商「套牢」的風險", "因為這些技術非常廉價且低階，市場上隨處可買", "因為智邦打算徹底退出所有的網通設備市場"]}, ans: 1 },
+        { q: {en: "Expanding from Network Switches into AI Accelerator Modules is an example of what strategy?", tw: "從傳統「網路交換器」跨足生產「AI 加速器模組」，是展現了何種企業策略？"}, options: {en: ["Unrelated Diversification", "Related Diversification", "Downstream Vertical Integration", "Market Penetration"], tw: ["非相關多角化 (Unrelated Diversification)", "相關多角化 (Related Diversification)", "向下游垂直整合 (Downstream Vertical Integration)", "單純的市場滲透 (Market Penetration)"]}, ans: 1 },
+        { q: {en: "In the BCG Matrix, how are Accton's AI Accelerator Modules classified?", tw: "在 BCG 波士頓矩陣中，智邦呈爆發性成長的「AI 加速器模組」事業被歸類於哪一個象限？"}, options: {en: ["Dog (Low Growth, Low Share)", "Question Mark (High Growth, Low Share)", "Star (High Growth, High Share)", "Cash Cow (Low Growth, High Share)"], tw: ["落水狗事業 (低市場成長，低相對市佔)", "問號事業 (高市場成長，低相對市佔)", "明星事業 (高市場成長，高相對市佔)", "金牛事業 (低市場成長，高相對市佔)"]}, ans: 2 },
+        { q: {en: "What economic benefit does Accton gain by offering both switches and AI modules to the same CSPs?", tw: "智邦同時提供網路交換器與 AI 模組給同一批雲端巨頭客戶，這主要創造了何種經濟效益？"}, options: {en: ["Economies of Scope (範疇經濟)", "Diseconomies of Scale", "Increased Transaction Costs", "Zero synergy"], tw: ["範疇經濟 (Economies of Scope，提升一站式服務綜效)", "規模不經濟 (Diseconomies of Scale)", "大幅增加內部的交易成本", "完全沒有產生任何綜效"]}, ans: 0 }
+      ]
+    },
+    {
+      id: 6,
+      icon: IconMap,
+      title: { en: "6. Global Expansion & Future Challenges (TP3)", tw: "6. 全球佈局與未來 ESG 挑戰 (TP3)" },
+      highlights: { 
+        en: ["Transnational Strategy", "Geopolitical Resilience (China+1)", "Net Zero 2050 & ESG Governance"], 
+        tw: ["跨國型全球擴張策略", "地緣政治韌性 (China+1)", "2050 淨零碳排與 ESG 治理"]
+      },
+      description: {
+        en: "Analyzing Accton's geographic footprint reveals a textbook 'Transnational Strategy'. The networking ODM industry faces Extreme Pressures for Cost Reduction, historically pushing production to low-cost hubs. However, the current geopolitical climate (US-China tech wars) and the need for intense custom collaboration with CSPs dictate a High Pressure for Local Responsiveness. Consequently, Accton cannot simply centralize production. It executes a complex 'China+1' strategy, organically expanding capacity across Taiwan (R&D/High-end), Vietnam/Southeast Asia (Mass production/Cost efficiency), and the US/Mexico (Proximity to mega-clients and tariff avoidance). This highly distributed network maximizes supply chain resilience against global shocks.\n\nLooking to the future, Accton faces profound internal and external challenges. Internally, the shift from a pure manufacturing mindset to a 'Manufacturing + R&D dual engine' risks severe 'Organizational Inertia'. Management must actively foster an innovative R&D culture and attract top-tier global talent in fields like CPO and AI algorithms. Externally, the pace of technological iteration in AI is ruthless.\n\nFinally, ESG is a paramount strategic imperative. Accton has firmly committed to achieving Net Zero emissions by 2050, with a milestone of a 50% carbon reduction by 2030. Initiatives like installing massive solar capacity and enforcing supply chain sustainability are not merely public relations; they are strict prerequisites for securing future orders from global CSPs who are bound by stringent environmental regulations. Governance mechanisms remain robust, mitigating agency problems as the firm aggressively invests in its future.",
+        tw: "剖析智邦的全球地緣佈局，可見其採取了極具挑戰的「跨國型策略 (Transnational Strategy)」。網通代工業面臨極端的「降低成本壓力」，過去多將產能集中以獲取規模經濟。然而，當前的地緣政治（中美科技戰）以及與雲端巨頭深度客製協作的需求，同時帶來了極高的「當地回應壓力」。因此，智邦無法再固守單一產地。它正大舉執行「China+1」策略，透過自行設立（有機成長）將產能精密分散至：台灣（高階研發）、越南/東南亞（量產與成本效益）、以及美國/墨西哥（貼近核心客戶並規避關稅）。這套複雜的碎裂化生產網絡，將供應鏈韌性提升至最高點。\n\n展望未來，智邦面臨著深層的內部與外部挑戰。在內部，從純代工思維轉型為「製造+研發雙軸並進」，極易遭遇強大的「組織慣性 (Organizational Inertia)」反撲。管理層必須鐵腕推動文化變革，並在全球瘋狂爭奪 CPO 與 AI 演算法等頂尖高階研發人才。在外部，AI 技術的迭代速度冷酷無情，容不下絲毫誤判。\n\n最後，ESG 永續發展已成為攸關生死的硬性指標。智邦已立下軍令狀：承諾 2050 年達成淨零碳排，並於 2030 年完成減碳 50% 的里程碑。大舉建置太陽能板與強迫供應鏈深度減碳，絕非公關作秀，而是搶奪受嚴苛環保法規綁定的全球 CSP 巨頭訂單的「絕對入場券」。在公司治理上，智邦透過健全的董事會機制，有效防範代理人問題，確保這場轉型豪賭能為股東創造長期價值。"
+      },
+      wrapUp: {
+        en: "Accton's Transnational network secures its geopolitical resilience, but overcoming organizational inertia to execute its R&D vision and Net Zero commitments will define its ultimate legacy.",
+        tw: "智邦的跨國型生產網絡確保了其堅不可摧的地緣政治韌性，但能否成功克服組織慣性以落實研發願景與淨零承諾，將決定其能否永續稱霸下一個十年。"
+      },
+      cards: [
+        { term: {en:"Transnational Strategy", tw:"跨國型策略 (I-R架構)"}, def: {en:"A global strategy seeking both extreme cost efficiency AND high local responsiveness/resilience.", tw:"在 I-R 架構中，企業同時面臨極高「降低成本壓力」與極高「當地回應壓力」時，所採取的兼具效率與彈性的全球佈局策略。"} },
+        { term: {en:"Organizational Inertia", tw:"組織慣性"}, def: {en:"Internal resistance to strategic change, often driven by a history of success in an outdated model.", tw:"內部員工或既有流程抗拒重大策略轉型的阻力，通常源自於過去傳統成功模式（如純粹追求製造效率）所留下的包袱。"} },
+        { term: {en:"Net Zero 2050", tw:"2050 淨零碳排"}, def: {en:"Accton's absolute ESG mandate to balance carbon emissions with carbon removal by the year 2050.", tw:"智邦的終極 ESG 環境承諾：確保在 2050 年前，企業整體溫室氣體排放量與被移除量達到完全平衡。"} },
+        { term: {en:"Agency Problem", tw:"代理人問題"}, def: {en:"Conflicts of interest between shareholders and management; mitigated at Accton via robust board governance.", tw:"股東與高階專業經理人之間的利益衝突風險。智邦透過健全的薪酬與審計委員會機制來防範經理人過度投資或自利。" } }
+      ],
+      quizzes: [
+        { q: {en: "In the I-R framework, which pressures drive Accton's 'Transnational Strategy'?", tw: "在整合-回應 (I-R) 架構中，是哪兩股壓力驅動了智邦採取高難度的「跨國型策略」？"}, options: {en: ["Low cost pressure, Low responsiveness pressure", "High pressures for BOTH Cost Reduction AND Local Responsiveness (Resilience)", "Zero pressure to adapt", "Pressure only to increase prices"], tw: ["極低的成本壓力與極低的當地回應壓力", "同時面臨極高的「降低成本壓力」以及極高的「當地回應/供應鏈韌性壓力」", "市場完全沒有任何要求企業改變的壓力", "純粹只有無止盡調漲產品價格的壓力"]}, ans: 1 },
+        { q: {en: "Why is Accton building manufacturing capacity in the US and Mexico instead of just Southeast Asia?", tw: "為何智邦除了佈局東南亞，還要大舉赴美國與墨西哥建立產能？"}, options: {en: ["Because land is cheaper in the US", "To be physically proximate to core mega-clients (CSPs) and mitigate tariff/geopolitical risks", "To abandon the Asian market entirely", "Because they only want to hire American workers"], tw: ["單純因為美國的工業用地比東南亞更便宜", "為了緊密貼近核心雲端巨頭客戶，並有效規避中美科技戰的關稅與地緣政治風險", "因為智邦打算徹底放棄並撤出整個亞洲市場", "因為集團決議未來只僱用美國籍員工"]}, ans: 1 },
+        { q: {en: "What internal obstacle must Accton's leadership overcome to implement the 'Manufacturing + R&D' dual engine?", tw: "為了成功落實「製造+研發雙軸並進」策略，智邦高層必須強力克服哪一項內部管理障礙？"}, options: {en: ["Having too much cash", "Organizational Inertia stemming from a legacy manufacturing-centric culture", "Employees learning too quickly", "A lack of office space"], tw: ["集團帳上的自由現金流實在過於氾濫", "源自於過去純代工製造文化所累積的強大「組織慣性 (Organizational Inertia)」", "基層員工學習新 AI 技術的速度實在太快導致管理失控", "單純只是總部辦公室的物理空間不足"]}, ans: 1 },
+        { q: {en: "What is an absolute prerequisite for Accton to secure future orders from global CSPs?", tw: "對於智邦而言，搶奪全球雲端巨頭 (CSPs) 未來訂單的「絕對硬性入場券」為何？"}, options: {en: ["Creating the best TikTok videos", "Strict ESG compliance, including aggressive decarbonization toward Net Zero 2050", "Avoiding any mention of the environment", "Using only plastic packaging"], tw: ["製作出全球最高流量的社群短影音", "鐵腕落實嚴苛的 ESG 規範，包含朝向 2050 淨零碳排邁進的深度供應鏈減碳", "嚴格禁止公司內部討論任何與環境保護相關的議題", "全面恢復使用一次性塑膠包裝來降低成本"]}, ans: 1 }
+      ]
+    }
+  ]
+};
+
+/* ===== FlashCard Component ===== */
+const FlashCard = ({ c, t, handleCardClick, indexKey }) => {
+  const [flipped, setFlipped] = useState(false);
+  
+  useEffect(() => {
+    setFlipped(false);
+  }, [indexKey]);
+
+  const onClick = () => {
+    setFlipped(!flipped);
+    handleCardClick();
+  };
+
+  return (
+    <div className="perspective cursor-pointer h-48" onClick={onClick}>
+      <div className={`transform-style-3d relative w-full h-full transition-transform duration-500 ${flipped ? 'rotate-y-180' : ''}`}>
+        <div className="backface-hidden absolute inset-0 bg-white dark:bg-slate-800 rounded-xl p-6 flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700 shadow-md hover:border-[#004030] dark:hover:border-[#D8C3A5] transition-colors">
+          <span className="font-serif font-black text-xl md:text-2xl text-[#004030] dark:text-[#D8C3A5] text-center">{t(c.term)}</span>
+          <span className="mt-4 text-xs text-slate-400 font-sans">{t(DICT.UI.flipPrompt)}</span>
+        </div>
+        <div className="backface-hidden rotate-y-180 absolute inset-0 bg-[#004030] dark:bg-slate-700 rounded-xl p-6 flex items-center justify-center shadow-md border border-[#004030] dark:border-[#D8C3A5]">
+          <span className="text-sm md:text-base leading-relaxed font-semibold text-white dark:text-slate-200 text-center">{t(c.def)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ===== SVG DRAWING COMPONENTS (Accton Specific) ===== */
+const SVGTheme1 = ({lang}) => (
+  <svg viewBox="0 0 600 300" className="w-full h-auto bg-slate-900 rounded-lg shadow-lg border border-[#004030]/50 dark:border-[#D8C3A5]/30">
+    <text x="300" y="35" fill="#D8C3A5" fontSize="14" textAnchor="middle" fontWeight="bold">Accton's Strategic Transition (智邦策略轉型)</text>
+    
+    <rect x="50" y="80" width="200" height="150" rx="8" fill="#1e293b" opacity="0.9" stroke="#64748b" strokeWidth="2"/>
+    <text x="150" y="110" fill="#f8fafc" fontSize="12" textAnchor="middle" fontWeight="bold">Past: Pure Manufacturing</text>
+    <text x="150" y="130" fill="#94a3b8" fontSize="10" textAnchor="middle">傳統：純 ODM 製造</text>
+    <text x="150" y="160" fill="#e2e8f0" fontSize="10" textAnchor="middle">• Cost Efficiency (成本效率)</text>
+    <text x="150" y="180" fill="#e2e8f0" fontSize="10" textAnchor="middle">• Broadband Switches (寬頻交換器)</text>
+    <text x="150" y="200" fill="#e2e8f0" fontSize="10" textAnchor="middle">• Single Engine (單一引擎)</text>
+
+    <path d="M 260 155 L 330 155" stroke="#fbbf24" strokeWidth="4" fill="none" markerEnd="url(#arrowheadGold)"/>
+    <text x="295" y="145" fill="#fbbf24" fontSize="10" textAnchor="middle" fontWeight="bold">Pivot (轉型)</text>
+
+    <rect x="350" y="80" width="200" height="150" rx="8" fill="#004030" opacity="0.9" stroke="#D8C3A5" strokeWidth="2"/>
+    <text x="450" y="110" fill="#f8fafc" fontSize="12" textAnchor="middle" fontWeight="bold">Future: Mfg + R&D Dual Engine</text>
+    <text x="450" y="130" fill="#D8C3A5" fontSize="10" textAnchor="middle">未來：製造+研發 雙軸並進</text>
+    <text x="450" y="160" fill="#e2e8f0" fontSize="10" textAnchor="middle">• AI Accelerators (AI 加速卡)</text>
+    <text x="450" y="180" fill="#e2e8f0" fontSize="10" textAnchor="middle">• 800G/1.6T & CPO (前瞻研發)</text>
+    <text x="450" y="200" fill="#fbbf24" fontSize="10" textAnchor="middle" fontWeight="bold">2025 Rev: 248.2B NTD (+124%)</text>
+
+    <defs>
+      <marker id="arrowheadGold" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#fbbf24" />
+      </marker>
+    </defs>
+  </svg>
+);
+
+const SVGTheme2 = ({lang}) => (
+  <svg viewBox="0 0 600 300" className="w-full h-auto bg-slate-900 rounded-lg shadow-lg border border-[#004030]/50 dark:border-[#D8C3A5]/30">
+    <text x="300" y="35" fill="#D8C3A5" fontSize="14" textAnchor="middle" fontWeight="bold">PESTEL: Macro Environment Impacts (總體環境衝擊)</text>
+    
+    <circle cx="200" cy="150" r="80" fill="#b45309" opacity="0.8" stroke="#fbbf24" strokeWidth="2"/>
+    <text x="200" y="125" fill="#f8fafc" fontSize="12" textAnchor="middle" fontWeight="bold">Technological (科技)</text>
+    <text x="200" y="150" fill="#fde68a" fontSize="10" textAnchor="middle">AI Computing Boom</text>
+    <text x="200" y="170" fill="#e2e8f0" fontSize="10" textAnchor="middle">800G / 1.6T / CPO / L11</text>
+    <text x="200" y="190" fill="#e2e8f0" fontSize="9" textAnchor="middle">技術極速迭代</text>
+
+    <circle cx="400" cy="150" r="80" fill="#1e40af" opacity="0.8" stroke="#93c5fd" strokeWidth="2"/>
+    <text x="400" y="125" fill="#f8fafc" fontSize="12" textAnchor="middle" fontWeight="bold">Political/Legal (政/法)</text>
+    <text x="400" y="150" fill="#93c5fd" fontSize="10" textAnchor="middle">US-China Tech War</text>
+    <text x="400" y="170" fill="#e2e8f0" fontSize="10" textAnchor="middle">China+1 De-risking</text>
+    <text x="400" y="190" fill="#e2e8f0" fontSize="9" textAnchor="middle">Net Zero ESG 法規</text>
+
+    <rect x="250" y="140" width="100" height="20" fill="#004030" stroke="#D8C3A5"/>
+    <text x="300" y="154" fill="#D8C3A5" fontSize="10" textAnchor="middle" fontWeight="bold">Accton's Focus</text>
+  </svg>
+);
+
+const SVGTheme3 = ({lang}) => (
+  <svg viewBox="0 0 600 300" className="w-full h-auto bg-slate-900 rounded-lg shadow-lg border border-[#004030]/50 dark:border-[#D8C3A5]/30">
+    <text x="300" y="25" fill="#D8C3A5" fontSize="14" textAnchor="middle" fontWeight="bold">Five Forces: White-box Networking Dynamics (五力分析)</text>
+    
+    {/* Center: Rivalry */}
+    <rect x="230" y="120" width="140" height="70" rx="8" fill="#b45309" stroke="#fbbf24" strokeWidth="2" opacity="0.9"/>
+    <text x="300" y="145" fill="white" fontSize="12" textAnchor="middle" fontWeight="bold">Rivalry (競爭者廝殺)</text>
+    <text x="300" y="160" fill="#fde68a" fontSize="10" textAnchor="middle">Med-High: Quanta, Wistron</text>
+    <text x="300" y="175" fill="#fde68a" fontSize="10" textAnchor="middle">資源相似度極高</text>
+
+    {/* Left: Suppliers */}
+    <rect x="40" y="125" width="140" height="60" rx="6" fill="#1e293b" stroke="#94a3b8" strokeWidth="2" opacity="0.9"/>
+    <text x="110" y="145" fill="white" fontSize="11" textAnchor="middle" fontWeight="bold">Supplier Power (供應商)</text>
+    <text x="110" y="160" fill="#94a3b8" fontSize="10" textAnchor="middle">Med-High: Nvidia, Broadcom</text>
+    <text x="110" y="175" fill="#94a3b8" fontSize="9" textAnchor="middle">晶片巨頭壟斷底層</text>
+    <path d="M 180 155 L 225 155" stroke="#94a3b8" strokeWidth="3" fill="none" markerEnd="url(#arrowheadGray)"/>
+
+    {/* Right: Buyers */}
+    <rect x="420" y="125" width="140" height="60" rx="6" fill="#004030" stroke="#D8C3A5" strokeWidth="2" opacity="0.9"/>
+    <text x="490" y="145" fill="white" fontSize="11" textAnchor="middle" fontWeight="bold">Buyer Power (買方)</text>
+    <text x="490" y="160" fill="#D8C3A5" fontSize="10" textAnchor="middle">Extremely High: CSPs (Meta)</text>
+    <text x="490" y="175" fill="#D8C3A5" fontSize="9" textAnchor="middle">雲端巨頭海量採購砍價</text>
+    <path d="M 420 155 L 375 155" stroke="#D8C3A5" strokeWidth="3" fill="none" markerEnd="url(#arrowheadGold)"/>
+
+    <defs>
+      <marker id="arrowheadGray" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+        <polygon points="0 0, 6 2, 0 4" fill="#94a3b8" />
+      </marker>
+    </defs>
+  </svg>
+);
+
+const SVGTheme4 = ({lang}) => (
+  <svg viewBox="0 0 600 300" className="w-full h-auto bg-slate-900 rounded-lg shadow-lg border border-[#004030]/50 dark:border-[#D8C3A5]/30">
+    <text x="300" y="30" fill="#D8C3A5" fontSize="14" textAnchor="middle" fontWeight="bold">Dynamic Capabilities Framework (動態能力架構)</text>
+    
+    <path d="M 150 160 A 150 70 0 0 1 450 160" fill="none" stroke="#D8C3A5" strokeWidth="2" strokeDasharray="6 4" markerEnd="url(#arrowheadGold)"/>
+    
+    <circle cx="150" cy="180" r="45" fill="#1e40af" stroke="#93c5fd" strokeWidth="2"/>
+    <text x="150" y="175" fill="white" fontSize="12" textAnchor="middle" fontWeight="bold">Sensing</text>
+    <text x="150" y="195" fill="#93c5fd" fontSize="10" textAnchor="middle">感知 AI 浪潮</text>
+
+    <circle cx="300" cy="100" r="45" fill="#b45309" stroke="#fbbf24" strokeWidth="2"/>
+    <text x="300" y="95" fill="white" fontSize="12" textAnchor="middle" fontWeight="bold">Seizing</text>
+    <text x="300" y="115" fill="#fbbf24" fontSize="10" textAnchor="middle">猛烈擴廠+800G</text>
+
+    <circle cx="450" cy="180" r="45" fill="#004030" stroke="#D8C3A5" strokeWidth="2"/>
+    <text x="450" y="175" fill="white" fontSize="12" textAnchor="middle" fontWeight="bold">Transforming</text>
+    <text x="450" y="195" fill="#D8C3A5" fontSize="10" textAnchor="middle">重組為雙軸 DNA</text>
+  </svg>
+);
+
+const SVGTheme5 = ({lang}) => (
+  <svg viewBox="0 0 600 300" className="w-full h-auto bg-slate-900 rounded-lg shadow-lg border border-[#004030]/50 dark:border-[#D8C3A5]/30">
+    <text x="300" y="25" fill="#D8C3A5" fontSize="14" textAnchor="middle" fontWeight="bold">TCE & Vertical Integration (交易成本與垂直整合)</text>
+    
+    <rect x="100" y="80" width="150" height="150" rx="8" fill="#1e293b" stroke="#64748b" strokeWidth="2"/>
+    <text x="175" y="110" fill="#f8fafc" fontSize="12" textAnchor="middle" fontWeight="bold">TCE Drivers</text>
+    <text x="175" y="140" fill="#fbbf24" fontSize="10" textAnchor="middle">• High Asset Specificity</text>
+    <text x="175" y="160" fill="#fbbf24" fontSize="10" textAnchor="middle">(極高資產專屬性)</text>
+    <text x="175" y="190" fill="#e2e8f0" fontSize="10" textAnchor="middle">• High Uncertainty</text>
+    <text x="175" y="210" fill="#e2e8f0" fontSize="10" textAnchor="middle">• Hold-up Risk (套牢風險)</text>
+
+    <path d="M 260 155 L 340 155" stroke="#fbbf24" strokeWidth="4" fill="none" markerEnd="url(#arrowheadGold)"/>
+    <text x="300" y="145" fill="#fbbf24" fontSize="10" textAnchor="middle" fontWeight="bold">Forces</text>
+
+    <rect x="350" y="80" width="150" height="150" rx="8" fill="#004030" stroke="#D8C3A5" strokeWidth="2"/>
+    <text x="425" y="110" fill="#f8fafc" fontSize="12" textAnchor="middle" fontWeight="bold">Upstream Integration</text>
+    <text x="425" y="130" fill="#D8C3A5" fontSize="10" textAnchor="middle">向上游自主研發垂直整合</text>
+    <text x="425" y="160" fill="#e2e8f0" fontSize="10" textAnchor="middle">• Internalize CPO R&D</text>
+    <text x="425" y="180" fill="#e2e8f0" fontSize="10" textAnchor="middle">• Rack-Level (L11)</text>
+    <text x="425" y="210" fill="#D8C3A5" fontSize="10" textAnchor="middle" fontWeight="bold">Shield from Suppliers</text>
+  </svg>
+);
+
+const SVGTheme6 = ({lang}) => (
+  <svg viewBox="0 0 600 300" className="w-full h-auto bg-slate-900 rounded-lg shadow-lg border border-[#004030]/50 dark:border-[#D8C3A5]/30">
+    <text x="300" y="30" fill="#D8C3A5" fontSize="14" textAnchor="middle" fontWeight="bold">Transnational Strategy & China+1 (跨國型策略與地緣韌性)</text>
+    
+    <line x1="300" y1="50" x2="300" y2="250" stroke="#64748b" strokeWidth="2" strokeDasharray="4"/>
+    <line x1="100" y1="150" x2="500" y2="150" stroke="#64748b" strokeWidth="2" strokeDasharray="4"/>
+    
+    <text x="100" y="140" fill="#D8C3A5" fontSize="10" textAnchor="end" transform="rotate(-90 80 150)">Local Responsiveness (當地回應壓力)</text>
+    <text x="300" y="270" fill="#D8C3A5" fontSize="10" textAnchor="middle">Cost Reduction (降低成本壓力)</text>
+    
+    <text x="200" y="80" fill="#cbd5e1" fontSize="12" textAnchor="middle" opacity="0.3">Multi-Domestic</text>
+    <text x="400" y="220" fill="#cbd5e1" fontSize="12" textAnchor="middle" opacity="0.3">Global Strategy</text>
+
+    <rect x="330" y="60" width="140" height="70" rx="8" fill="#004030" stroke="#D8C3A5" strokeWidth="2" opacity="0.9"/>
+    <text x="400" y="85" fill="white" fontSize="12" textAnchor="middle" fontWeight="bold">Transnational</text>
+    <text x="400" y="105" fill="#D8C3A5" fontSize="9" textAnchor="middle">高韌性 + 規模效率</text>
+    <text x="400" y="120" fill="#D8C3A5" fontSize="9" textAnchor="middle">TW(研發) / VN(量產) / US(貼近)</text>
+
+    <circle cx="200" cy="200" r="10" fill="#ef4444"/>
+    <text x="200" y="225" fill="#ef4444" fontSize="10" textAnchor="middle">Old centralized model</text>
+    <path d="M 210 195 L 325 105" stroke="#ef4444" strokeWidth="2" strokeDasharray="3" fill="none" markerEnd="url(#arrowheadRed)"/>
+
+    <defs>
+      <marker id="arrowheadRed" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+        <polygon points="0 0, 6 2, 0 4" fill="#ef4444" />
+      </marker>
+    </defs>
+  </svg>
+);
+
+const SVG_COMPONENTS = [null, SVGTheme1, SVGTheme2, SVGTheme3, SVGTheme4, SVGTheme5, SVGTheme6];
+
+/* ===== UI Components ===== */
+const TopHeader = ({ menuOpen, setMenuOpen, navTo, tUI, speakText, stopSpeak, speechSynthesisActive, lang, setLang, isDark, setIsDark }) => {
+  const toggleLangText = lang === 'en' ? '繁體中文' : 'English';
+
+  return (
+    <header className="fixed top-0 left-0 right-0 h-16 z-50 flex items-center justify-between px-4 border-b bg-[#004030] dark:bg-slate-900 border-[#D8C3A5]/30 shadow-lg text-white">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Menu">
+          {menuOpen ? <IconX size={20} /> : <IconMenu size={20} />}
+        </button>
+        <button onClick={() => navTo(0)} className="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Home (首頁)">
+          <IconHome size={20} />
+        </button>
+        <div className="font-bold text-lg md:text-xl tracking-tight cursor-pointer flex items-center gap-2" onClick={() => navTo(0)}>
+          <span className="font-serif font-black text-[#D8C3A5] text-lg tracking-widest">{tUI('brand')}</span>
+          <span className="hidden sm:inline font-serif text-sm">{tUI('title')}</span>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-1">
+          <button onClick={() => speakText()} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Play Audio">
+            <IconPlay size={18} />
+          </button>
+          <button onClick={stopSpeak} className={`p-1.5 hover:bg-white/10 rounded-lg transition-colors ${speechSynthesisActive ? 'text-[#D8C3A5] animate-pulse' : ''}`} title="Stop Audio">
+            <IconSquare size={18} />
+          </button>
+        </div>
+        
+        <button onClick={() => { stopSpeak(); setLang(lang === 'en' ? 'tw' : 'en'); }} className="px-3 py-1.5 rounded-lg border border-[#D8C3A5]/50 hover:bg-[#D8C3A5] hover:text-[#004030] text-sm font-bold transition-colors whitespace-nowrap">
+          {toggleLangText}
+        </button>
+        
+        <button onClick={() => setIsDark(!isDark)} className="p-2 hover:bg-white/10 rounded-lg transition-colors" title="Toggle Dark/Light">
+          {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+        </button>
+      </div>
+    </header>
+  );
+};
+
+const DrawerMenu = ({ menuOpen, navTo, tUI, t, currentPage }) => {
+  return (
+    <div className={`fixed inset-y-0 left-0 w-72 transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 z-40 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-2xl pt-16 overflow-y-auto`}>
+      <nav className="p-4 flex flex-col gap-2">
+        <button onClick={() => navTo(0)} className={`text-left p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${currentPage===0 ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5]' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+          <IconBookOpen size={18}/> 0. {tUI('executiveSummary')}
+        </button>
+        {DICT.THEMES.map((th) => (
+          <button key={th.id} onClick={() => navTo(th.id)} className={`text-left p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${currentPage===th.id ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5]' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+             <th.icon size={18}/> {t(th.title)}
+          </button>
+        ))}
+        <div className="my-3 border-b border-slate-200 dark:border-slate-700"></div>
+        <button onClick={() => navTo(7)} className={`text-left p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${currentPage===7 ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5]' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+          <IconActivity size={18}/> 7. {tUI('interactiveLab')}
+        </button>
+        <button onClick={() => navTo(8)} className={`text-left p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${currentPage===8 ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5]' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+          <IconGlobe size={18}/> 8. {tUI('externalResources')}
+        </button>
+        <button onClick={() => navTo(9)} className={`text-left p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${currentPage===9 ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5]' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+          <IconCheckCircle size={18}/> 9. {tUI('analytics')}
+        </button>
+      </nav>
+    </div>
+  );
+};
+
+const FooterBlock = () => {
+  return (
+    <footer className="h-8 fixed bottom-0 left-0 right-0 flex items-center justify-between px-6 text-xs font-semibold z-30 bg-[#004030] text-[#D8C3A5]/60 border-t border-[#D8C3A5]/30">
+      <div>v2.6 (2026.04) © Accton Strategy SPA</div>
+      <div className="flex gap-6 items-center">
+        <a href="https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo" target="_blank" rel="noreferrer" className="hover:text-white transition-colors underline underline-offset-2">
+          Architect: Prof. Shihmin Lo
+        </a>
+        <button onClick={() => window.scrollTo({top:0, behavior:'smooth'})} className="font-bold hover:text-white transition-colors flex items-center gap-1 cursor-pointer">
+          TOP ↑
+        </button>
+      </div>
+    </footer>
+  );
+};
+
+const OverviewView = ({ t, tUI, navTo, lang }) => {
+  const allCards = [
+    ...DICT.THEMES.map(th => ({ id: th.id, icon: th.icon, title: t(th.title) })),
+    { id: 7, icon: IconActivity, title: tUI('interactiveLab') },
+    { id: 8, icon: IconGlobe, title: tUI('externalResources') },
+    { id: 9, icon: IconCheckCircle, title: tUI('analytics') }
+  ];
+
+  return (
+    <div className="max-w-5xl mx-auto animate-fade-in mt-4">
+      <div className="bg-[#004030] dark:bg-slate-800 rounded-2xl p-6 sm:p-8 text-white mb-10 shadow-lg border border-[#D8C3A5]/20">
+        <p className="text-xs font-bold uppercase tracking-widest text-[#D8C3A5] mb-3">SMMC AI Strategy Workstation</p>
+        <h1 className="text-3xl md:text-4xl font-serif font-black mb-4">{t(DICT.OVERVIEW.title)}</h1>
+        <div className="text-[#D8C3A5]/90 text-base leading-loose whitespace-pre-wrap font-medium">
+          {t(DICT.OVERVIEW.content)}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {allCards.map(item => (
+          <div key={item.id} onClick={() => navTo(item.id)} className={`bg-white dark:bg-slate-800 p-6 rounded-xl border ${item.id >= 7 ? 'border-amber-200 dark:border-amber-900/50 hover:border-amber-500' : 'border-slate-200 dark:border-slate-700 hover:border-[#004030] dark:hover:border-[#D8C3A5]'} cursor-pointer hover:shadow-xl transition-all duration-300 group flex flex-col items-center text-center gap-4`}>
+            <div className={`p-4 rounded-full transition-colors ${item.id >= 7 ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500 group-hover:text-white' : 'bg-[#004030]/5 dark:bg-[#D8C3A5]/10 text-[#004030] dark:text-[#D8C3A5] group-hover:bg-[#004030] dark:group-hover:bg-[#D8C3A5] group-hover:text-white dark:group-hover:text-[#004030]'}`}>
+              <item.icon size={32} />
+            </div>
+            <div className={`font-bold font-serif text-lg ${item.id >= 7 ? 'text-amber-700 dark:text-amber-500' : 'text-[#004030] dark:text-[#D8C3A5]'}`}>{item.title}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ThemeContentView = ({ themeData, t, tUI, navTo, lang, updateCardAnalytics, updateQuizAnalytics }) => {
+  const [cardIdx, setCardIdx] = useState(0);
+  const [quizIdx, setQuizIdx] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [cardClicks, setCardClicks] = useState(0);
+  
+  const SVGVisual = SVG_COMPONENTS[themeData.id] || (() => <div/>);
+
+  useEffect(() => {
+    if (themeData && themeData.cards && themeData.cards.length > 0) {
+      updateCardAnalytics(themeData.id, Math.min(2, themeData.cards.length), cardClicks);
+    }
+  }, [themeData, cardIdx, updateCardAnalytics, cardClicks]);
+
+  const handleNextCards = () => {
+    const newIdx = Math.min(cardIdx + 2, themeData.cards.length - 2);
+    setCardIdx(newIdx);
+    updateCardAnalytics(themeData.id, Math.min(newIdx + 2, themeData.cards.length), cardClicks);
+  };
+
+  const handleCardClick = () => {
+    setCardClicks(c => c + 1);
+    updateCardAnalytics(themeData.id, Math.min(cardIdx + 2, themeData.cards.length), cardClicks + 1);
+  };
+
+  const handleQuizSelect = (qIdx, optIdx) => {
+    const newAns = {...quizAnswers, [qIdx]: optIdx};
+    setQuizAnswers(newAns);
+    let score = 0;
+    themeData.quizzes.forEach((q, i) => {
+      if (newAns[i] === q.ans) score++;
+    });
+    updateQuizAnalytics(themeData.id, score, Object.keys(newAns).length);
+  };
+
+  const handleNextQuiz = () => {
+    setQuizIdx(Math.min(quizIdx + 2, themeData.quizzes.length - 2));
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto pb-12 animate-fade-in mt-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t(themeData.title)}</h1>
+      </div>
+
+      <div className="flex flex-wrap gap-3 mb-8">
+        {t(themeData.highlights).map((hl, i) => (
+          <span key={i} className="px-4 py-1.5 bg-[#004030]/10 text-[#004030] dark:bg-[#D8C3A5]/10 dark:text-[#D8C3A5] text-sm font-bold rounded-full border border-[#004030]/20 dark:border-[#D8C3A5]/20 shadow-sm">★ {hl}</span>
+        ))}
+      </div>
+
+      <div className="p-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl mb-12 text-lg leading-loose whitespace-pre-wrap font-medium">
+        <h2 className="text-2xl font-serif font-black mb-5 flex items-center gap-2 border-b-2 border-slate-200 dark:border-slate-700 pb-3 text-[#004030] dark:text-[#D8C3A5]"><IconBookOpen size={24}/> {tUI('description')}</h2>
+        {t(themeData.description)}
+      </div>
+
+      <div className="mb-12"><SVGVisual lang={lang}/></div>
+
+      <div className="mb-12">
+        <h2 className="text-2xl font-serif font-black mb-5 flex items-center gap-2 text-[#004030] dark:text-[#D8C3A5]"><IconTarget size={24}/> {tUI('flashcards')}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+          {themeData.cards.slice(cardIdx, cardIdx + 2).map((c, i) => (
+            <FlashCard key={`${themeData.id}-${cardIdx}-${i}`} c={c} t={t} handleCardClick={handleCardClick} indexKey={`${themeData.id}-${cardIdx}-${i}`} />
+          ))}
+        </div>
+        <div className="flex justify-between items-center text-sm font-bold text-slate-500 dark:text-slate-400">
+          <div>{tUI('clicks')}: <span className="text-[#004030] dark:text-[#D8C3A5]">{cardClicks}</span> &nbsp;|&nbsp; {tUI('shown')}: <span className="text-[#004030] dark:text-[#D8C3A5]">{Math.min(cardIdx + 2, themeData.cards.length)}</span> / {tUI('total')}: {themeData.cards.length}</div>
+          <div className="flex gap-3">
+            <button onClick={() => setCardIdx(0)} disabled={cardIdx === 0} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-50 transition-colors cursor-pointer"><IconRefreshCcw size={18}/></button>
+            <button onClick={handleNextCards} disabled={cardIdx + 2 >= themeData.cards.length} className="px-4 py-2 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] rounded-lg disabled:opacity-50 flex items-center gap-1 font-bold shadow-md transition-colors cursor-pointer"><IconChevronRight size={18}/> {tUI('next')} </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6 rounded-xl border-l-8 border-l-[#004030] dark:border-l-[#D8C3A5] bg-[#004030]/5 dark:bg-[#D8C3A5]/5 mb-12 shadow-sm">
+        <h3 className="font-serif font-black text-[#004030] dark:text-[#D8C3A5] mb-2 text-xl">{tUI('wrapUp')}</h3>
+        <p className="text-base md:text-lg italic font-medium text-slate-700 dark:text-slate-300">{t(themeData.wrapUp)}</p>
+      </div>
+
+      <div className="mb-12">
+        <h2 className="text-2xl font-serif font-black mb-5 flex items-center gap-2 text-[#004030] dark:text-[#D8C3A5]"><IconCheckCircle size={24}/> {tUI('quiz')}</h2>
+        <div className="space-y-6 mb-5">
+          {themeData.quizzes.slice(quizIdx, quizIdx + 2).map((q, localIdx) => {
+            const globalIdx = quizIdx + localIdx;
+            const userAns = quizAnswers[globalIdx];
+            const isAnswered = userAns !== undefined;
+            const isCorrect = userAns === q.ans;
+            
+            return (
+              <div key={globalIdx} className="p-6 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md">
+                <p className="font-bold mb-5 text-lg text-slate-800 dark:text-slate-200">Q: {t(q.q)}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {t(q.options).map((opt, oIdx) => {
+                    let btnClass = "p-4 rounded-lg border-2 text-left text-base font-bold transition-all duration-200 cursor-pointer ";
+                    if (!isAnswered) btnClass += "hover:bg-[#004030]/5 dark:hover:bg-[#D8C3A5]/10 hover:border-[#004030] dark:hover:border-[#D8C3A5] border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300";
+                    else if (oIdx === q.ans) btnClass += "bg-[#004030] dark:bg-[#D8C3A5] border-[#004030] dark:border-[#D8C3A5] text-white dark:text-[#004030] shadow-lg"; 
+                    else if (oIdx === userAns) btnClass += "bg-red-500 border-red-600 text-white"; 
+                    else btnClass += "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-40";
+                    
+                    return (
+                      <button key={oIdx} disabled={isAnswered} onClick={() => handleQuizSelect(globalIdx, oIdx)} className={btnClass}>
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+                {isAnswered && (
+                  <div className={`mt-4 text-base font-extrabold flex items-center gap-2 p-3 rounded-lg ${isCorrect ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
+                    {isCorrect ? <><IconCheckCircle size={20}/> {tUI('correctMsg')}</> : <><IconXCircle size={20}/> {tUI('wrongMsg')}</>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex justify-between items-center text-sm font-bold text-slate-500 dark:text-slate-400">
+           <div>{tUI('correct')}: <span className="text-[#004030] dark:text-[#D8C3A5]">{Object.keys(quizAnswers).filter(k => quizAnswers[k] === themeData.quizzes[k].ans).length}</span> &nbsp;|&nbsp; {tUI('answered')}: <span className="text-[#004030] dark:text-[#D8C3A5]">{Object.keys(quizAnswers).length}</span> / {tUI('total')}: {themeData.quizzes.length}</div>
+           <div className="flex gap-3">
+            <button onClick={() => { setQuizAnswers({}); setQuizIdx(0); }} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 flex items-center gap-2 transition-colors cursor-pointer"><IconRefreshCcw size={18}/> {tUI('retry')}</button>
+            <button onClick={handleNextQuiz} disabled={quizIdx + 2 >= themeData.quizzes.length} className="px-4 py-2 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] rounded-lg disabled:opacity-50 flex items-center gap-1 font-bold shadow-md transition-colors cursor-pointer"><IconChevronRight size={18}/> {tUI('next')} </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center pt-8 border-t border-slate-300 dark:border-slate-700">
+        <button onClick={() => navTo(themeData.id === 1 ? 0 : themeData.id - 1)} className="flex items-center gap-2 px-6 py-3 font-serif font-bold text-slate-500 hover:text-[#004030] dark:hover:text-[#D8C3A5] transition-colors uppercase tracking-wider text-sm cursor-pointer">
+          <IconChevronLeft size={20}/> {tUI('prevPage')}
+        </button>
+        <button onClick={() => navTo(themeData.id === 6 ? 7 : themeData.id + 1)} className="flex items-center gap-2 px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] rounded-lg font-serif font-bold shadow-md hover:bg-[#002b20] dark:hover:bg-white transition-colors uppercase tracking-wider text-sm cursor-pointer">
+          {tUI('nextPage')} <IconChevronRight size={20}/>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const InteractiveLabView = ({ lang, tUI, navTo }) => {
+  const [lab1Status, setLab1Status] = useState(0);
+  const [lab2Status, setLab2Status] = useState(0);
+  
+  // Lab 3: TCE Dashboard
+  const [tce, setTce] = useState({ spec: 80, freq: 70, uncert: 90 });
+  const internalizeScore = Math.min(100, (tce.spec * 1.5 + tce.uncert * 1.2 + tce.freq * 0.8) / 3.5);
+
+  // Lab 4: Transnational Strategy
+  const [sliders, setSliders] = useState({ tw: 40, vn: 40, us: 20 });
+  const metricInnovation = sliders.tw * 1.5 + sliders.us * 0.5;
+  const metricCost = sliders.vn * 1.8 + sliders.tw * 0.5;
+  const metricRisk = 100 - (sliders.us > 40 ? 50 : sliders.us * 1.2) - (sliders.vn * 0.5);
+  const norm = (val) => Math.min(100, Math.max(0, val));
+
+  return (
+    <div className="max-w-5xl mx-auto pb-12 animate-fade-in mt-4">
+       <h1 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] mb-6">{tUI('interactiveLab')}</h1>
+       <p className="mb-8 text-lg font-medium text-slate-700 dark:text-slate-300">
+         {lang === 'en' ? "Apply Accton's strategic theories in these simulated management labs." : "在以下高階管理模擬實驗室中，實務驗證智邦科技的企業策略理論。"}
+       </p>
+
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+         {/* Lab 1: VRIN Sorting */}
+         <div className="p-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md hover:border-[#004030] dark:hover:border-[#D8C3A5] transition-all">
+           <h3 className="font-serif font-black text-xl mb-3 flex items-center gap-2 text-[#004030] dark:text-[#D8C3A5]"><IconTarget /> Lab 1: VRIN Resource Sorting</h3>
+           {lab1Status === 0 ? (
+             <div>
+               <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-4 h-16">{lang === 'en' ? "Q: Which VRIN trait best describes Accton's decades of deep, trust-based collaborative development with Meta/Amazon?" : "Q: 智邦數十年來與 Meta/Amazon 等頂級 CSP 建立的深厚信任與協同開發默契，最主要屬於 VRIN 中的哪一項特質？"}</p>
+               <div className="grid grid-cols-2 gap-2">
+                 <button onClick={()=>setLab1Status(2)} className="py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded font-bold text-sm cursor-pointer">Valuable (有價值)</button>
+                 <button onClick={()=>setLab1Status(2)} className="py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded font-bold text-sm cursor-pointer">Rare (稀少)</button>
+                 <button onClick={()=>setLab1Status(1)} className="py-2 bg-[#004030]/10 dark:bg-[#D8C3A5]/10 text-[#004030] dark:text-[#D8C3A5] hover:bg-[#004030] hover:text-white dark:hover:bg-[#D8C3A5] dark:hover:text-[#004030] rounded font-bold text-sm transition-colors cursor-pointer">Inimitable (難以模仿)</button>
+                 <button onClick={()=>setLab1Status(2)} className="py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded font-bold text-sm cursor-pointer">Non-substitutable</button>
+               </div>
+             </div>
+           ) : (
+             <div className={`h-full flex flex-col justify-center items-center p-4 rounded-lg font-bold text-center ${lab1Status === 1 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
+               <p className="mb-4">{lab1Status === 1 ? (lang === 'en' ? 'Correct! This forms a highly path-dependent Social Complexity.' : '完全正確！這種長期累積的信任具備極高的「社會複雜性」，競爭對手極難模仿。') : (lang === 'en' ? 'Incorrect. Consider Social Complexity and Path Dependence.' : '判斷錯誤，請重新思考「社會複雜性」與歷史軌跡的防禦特質。')}</p>
+               <button onClick={()=>setLab1Status(0)} className="underline hover:opacity-70 cursor-pointer">{tUI('retry')}</button>
+             </div>
+           )}
+         </div>
+
+         {/* Lab 2: BCG Matrix Plotter */}
+         <div className="p-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md hover:border-[#004030] dark:hover:border-[#D8C3A5] transition-all">
+           <h3 className="font-serif font-black text-xl mb-3 flex items-center gap-2 text-[#004030] dark:text-[#D8C3A5]"><IconActivity /> Lab 2: BCG Matrix Plotter</h3>
+           {lab2Status === 0 ? (
+             <div>
+               <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 h-8">{lang === 'en' ? "Where do Accton's newly expanded 'AI Accelerator Modules' belong in the BCG matrix?" : "請點選：智邦營收爆發成長的「AI 加速器模組 (網路應用設備)」事業應落於 BCG 矩陣的哪個象限？"}</p>
+               <div className="relative mt-2 p-2">
+                 <div className="grid grid-cols-2 gap-2 h-32 relative z-10">
+                   <button onClick={()=>setLab2Status(1)} className="border-2 border-dashed border-slate-300 dark:border-slate-600 hover:bg-[#004030]/10 dark:hover:bg-[#D8C3A5]/10 hover:border-[#004030] dark:hover:border-[#D8C3A5] flex items-center justify-center font-bold text-slate-500 rounded transition-colors cursor-pointer">Star (明星)</button>
+                   <button onClick={()=>setLab2Status(2)} className="border-2 border-dashed border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-500 rounded cursor-pointer">Question Mark (問號)</button>
+                   <button onClick={()=>setLab2Status(2)} className="border-2 border-dashed border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-500 rounded cursor-pointer">Cash Cow (金牛)</button>
+                   <button onClick={()=>setLab2Status(2)} className="border-2 border-dashed border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-500 rounded cursor-pointer">Dog (落水狗)</button>
+                 </div>
+               </div>
+             </div>
+           ) : (
+             <div className={`h-full flex flex-col justify-center items-center p-4 rounded-lg font-bold text-center ${lab2Status === 1 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
+               <p className="mb-4">{lab2Status === 1 ? (lang === 'en' ? 'Correct! High market growth and strong relative share.' : '正確！AI 模組受惠算力爆發，具備高成長與高市佔，是智邦最強大的明星事業。') : (lang === 'en' ? 'Incorrect. Evaluate its 124% YoY growth.' : '錯誤！請重新評估該產品線 124% 的年增率與強大的市佔地位。')}</p>
+               <button onClick={()=>setLab2Status(0)} className="underline hover:opacity-70 cursor-pointer">{tUI('retry')}</button>
+             </div>
+           )}
+         </div>
+       </div>
+
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+         {/* Lab 3: TCE Dashboard */}
+         <div className="p-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl">
+           <h3 className="font-serif font-black text-xl mb-4 flex items-center gap-2 text-[#004030] dark:text-[#D8C3A5]"><IconShield /> Lab 3: TCE Vertical Integration (交易成本決策儀表板)</h3>
+           <p className="text-sm mb-6 font-medium text-slate-600 dark:text-slate-400">{lang === 'en' ? "Adjust TCE forces to see why Accton internalizes CPO/L11 R&D instead of outsourcing." : "調整 TCE 的三項維度，觀察智邦為何必須砸重金「內部化」研發 CPO 與 L11 技術，而非外部採購。"}</p>
+           
+           <div className="space-y-4">
+              <div>
+                <label className="flex justify-between text-xs font-bold mb-1 text-slate-800 dark:text-slate-200">
+                  <span>Asset Specificity (資產專屬性)</span> <span className="text-red-500">{tce.spec}%</span>
+                </label>
+                <input type="range" min="0" max="100" value={tce.spec} onChange={(e)=>setTce({...tce, spec: Number(e.target.value)})} className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-red-500"/>
+              </div>
+              <div>
+                <label className="flex justify-between text-xs font-bold mb-1 text-slate-800 dark:text-slate-200">
+                  <span>Environmental Uncertainty (環境不確定性)</span> <span className="text-orange-500">{tce.uncert}%</span>
+                </label>
+                <input type="range" min="0" max="100" value={tce.uncert} onChange={(e)=>setTce({...tce, uncert: Number(e.target.value)})} className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"/>
+              </div>
+              <div>
+                <label className="flex justify-between text-xs font-bold mb-1 text-slate-800 dark:text-slate-200">
+                  <span>Transaction Frequency (交易頻率)</span> <span className="text-yellow-600">{tce.freq}%</span>
+                </label>
+                <input type="range" min="0" max="100" value={tce.freq} onChange={(e)=>setTce({...tce, freq: Number(e.target.value)})} className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-yellow-600"/>
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-center p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl relative overflow-hidden">
+               <div className="w-full">
+                 <div className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                    <span>Buy (外部採購)</span>
+                    <span>Make (垂直整合內部化)</span>
+                 </div>
+                 <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden relative">
+                    <div className={`h-full transition-all duration-300 ${internalizeScore > 65 ? 'bg-red-500' : 'bg-green-500'}`} style={{width: `${internalizeScore}%`}}></div>
+                 </div>
+                 <div className="text-center mt-3 text-sm font-bold text-[#004030] dark:text-[#D8C3A5]">
+                    {internalizeScore > 75 ? (lang === 'en' ? "High Hold-up Risk! Accton must internalize R&D." : "套牢風險極高！智邦必須親自投入內部自主研發。") : (lang === 'en' ? "Outsource to external suppliers." : "可考慮委外給外部供應商生產。")}
+                 </div>
+               </div>
+            </div>
+         </div>
+
+         {/* Lab 4: Global Capacity Simulator */}
+         <div className="p-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl">
+           <h3 className="font-serif font-black text-xl mb-4 flex items-center gap-2 text-[#004030] dark:text-[#D8C3A5]"><IconMap /> Lab 4: Transnational Strategy Simulator (跨國型策略模擬)</h3>
+           <p className="text-sm mb-6 font-medium text-slate-600 dark:text-slate-400">{lang === 'en' ? "Distribute capacity to balance R&D, cost reduction, and geopolitical resilience." : "分配全球產能，觀察智邦如何在研發、成本降低與地緣韌性間取得完美平衡。"}</p>
+           
+           <div className="space-y-6">
+              <div>
+                <label className="flex justify-between text-sm font-bold mb-2 text-slate-800 dark:text-slate-200">
+                  <span>Taiwan (R&D Hub / Hsinchu)</span> <span className="text-[#004030] dark:text-[#D8C3A5]">{sliders.tw}%</span>
+                </label>
+                <input type="range" min="0" max="100" value={sliders.tw} onChange={(e)=>setSliders({...sliders, tw: Number(e.target.value)})} className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#004030] dark:accent-[#D8C3A5]"/>
+              </div>
+              <div>
+                <label className="flex justify-between text-sm font-bold mb-2 text-slate-800 dark:text-slate-200">
+                  <span>Vietnam / SE Asia (Mass Mfg)</span> <span className="text-[#004030] dark:text-[#D8C3A5]">{sliders.vn}%</span>
+                </label>
+                <input type="range" min="0" max="100" value={sliders.vn} onChange={(e)=>setSliders({...sliders, vn: Number(e.target.value)})} className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#004030] dark:accent-[#D8C3A5]"/>
+              </div>
+              <div>
+                <label className="flex justify-between text-sm font-bold mb-2 text-slate-800 dark:text-slate-200">
+                  <span>USA / Mexico (Proximity & Tariff Avoid)</span> <span className="text-[#004030] dark:text-[#D8C3A5]">{sliders.us}%</span>
+                </label>
+                <input type="range" min="0" max="100" value={sliders.us} onChange={(e)=>setSliders({...sliders, us: Number(e.target.value)})} className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#004030] dark:accent-[#D8C3A5]"/>
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-center space-y-4 mt-6 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+               <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1"><span>R&D & Innovation (研發創新力)</span> <span>{Math.round(norm(metricInnovation))}</span></div>
+                  <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 transition-all duration-300" style={{width: `${norm(metricInnovation)}%`}}></div>
+                  </div>
+               </div>
+               <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1"><span>Cost Efficiency (量產成本效益)</span> <span>{Math.round(norm(metricCost))}</span></div>
+                  <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 transition-all duration-300" style={{width: `${norm(metricCost)}%`}}></div>
+                  </div>
+               </div>
+               <div>
+                  <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1"><span>Geopolitical Tariff Risk (關稅制裁風險)</span> <span>{Math.round(norm(metricRisk))}</span></div>
+                  <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-500 transition-all duration-300" style={{width: `${norm(metricRisk)}%`}}></div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+       </div>
+
+       <div className="flex justify-between items-center pt-8 mt-12 border-t border-slate-300 dark:border-slate-700">
+        <button onClick={() => navTo(6)} className="flex items-center gap-2 px-6 py-3 font-serif font-bold text-slate-500 hover:text-[#004030] dark:hover:text-[#D8C3A5] transition-colors uppercase tracking-wider text-sm cursor-pointer">
+          <IconChevronLeft size={20}/> {tUI('prevPage')}
+        </button>
+        <button onClick={() => navTo(8)} className="flex items-center gap-2 px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] rounded-lg font-serif font-bold shadow-md hover:bg-[#002b20] dark:hover:bg-white transition-colors uppercase tracking-wider text-sm cursor-pointer">
+          {tUI('nextPage')} <IconChevronRight size={20}/>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const AnalyticsView = ({ lang, tUI, analyticsData, navTo }) => {
+  const [userData, setUserData] = useState({ group: '', id: '', name: '' });
+  
+  const handleExportCSV = () => {
+    if(!userData.group || !userData.id || !userData.name) {
+      alert(lang === 'en' ? "Please fill in all personal details." : "請完整填寫個人資料以利建檔。");
+      return;
+    }
+    
+    const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const filename = `Accton_StrategyReport_${userData.group}_${userData.name}_${dateStr}.csv`;
+    
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + 
+      "Module,TimeSpent(s),Interactions,CardReviewed(Viewed/Total),QuizScore(Correct/Answered/Total)\n";
+    
+    for (let i = 1; i <= 6; i++) {
+        const d = analyticsData[i];
+        csvContent += `Theme ${i},${d.time},${d.clicks},${d.cardsViewed}/${DICT.THEMES[i-1].cards.length},${d.quizCorrect}/${d.quizAnswered}/${DICT.THEMES[i-1].quizzes.length}\n`;
+    }
+    
+    csvContent += `\nGroup,${userData.group}\nStudentID,${userData.id}\nName,${userData.name}\n`;
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const calculateTotal = (key) => Object.values(analyticsData).reduce((a, b) => a + b[key], 0);
+
+  return (
+    <div className="max-w-5xl mx-auto pb-12 animate-fade-in mt-4">
+      <h1 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] mb-6">{tUI('analytics')}</h1>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 text-center shadow-md border border-slate-200 dark:border-slate-700">
+          <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-2">{tUI('timeSpent')}</div>
+          <div className="text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{calculateTotal('time')}</div>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 text-center shadow-md border border-slate-200 dark:border-slate-700">
+          <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-2">{tUI('clicks')}</div>
+          <div className="text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{calculateTotal('clicks')}</div>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 text-center shadow-md border border-slate-200 dark:border-slate-700">
+          <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-2">{tUI('cardRate')}</div>
+          <div className="text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{calculateTotal('cardsViewed')}</div>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 text-center shadow-md border border-slate-200 dark:border-slate-700">
+          <div className="text-slate-500 dark:text-slate-400 text-sm font-bold mb-2">{tUI('quizRate')}</div>
+          <div className="text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{calculateTotal('quizCorrect')}</div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-8 border border-slate-200 dark:border-slate-700 shadow-xl mb-10 overflow-x-auto">
+        <h3 className="font-serif font-black text-xl mb-6 text-[#004030] dark:text-[#D8C3A5]">Module Breakdown (各分頁紀錄)</h3>
+        <table className="w-full text-sm text-left">
+            <thead>
+                <tr className="border-b-2 border-slate-200 dark:border-slate-700 text-[#004030] dark:text-[#D8C3A5]">
+                    <th className="pb-3 pr-4">Theme</th>
+                    <th className="pb-3 px-4">Time (s)</th>
+                    <th className="pb-3 px-4">Clicks</th>
+                    <th className="pb-3 px-4">Cards (View/Total)</th>
+                    <th className="pb-3 pl-4">Quiz (Corr/Ans/Total)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {[1, 2, 3, 4, 5, 6].map(i => {
+                    const d = analyticsData[i];
+                    const tData = DICT.THEMES[i-1];
+                    return (
+                    <tr key={i} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                        <td className="py-3 pr-4 font-bold text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{tData.title[lang]}</td>
+                        <td className="py-3 px-4">{d.time}</td>
+                        <td className="py-3 px-4">{d.clicks}</td>
+                        <td className="py-3 px-4">{d.cardsViewed} / {tData.cards.length}</td>
+                        <td className="py-3 pl-4">{d.quizCorrect} / {d.quizAnswered} / {tData.quizzes.length}</td>
+                    </tr>
+                    )
+                })}
+            </tbody>
+        </table>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-8 border border-slate-200 dark:border-slate-700 shadow-xl">
+        <h3 className="font-serif font-black text-2xl mb-6 flex items-center gap-2 text-[#004030] dark:text-[#D8C3A5]"><IconDownload /> {tUI('exportCSV')}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <input type="text" placeholder={tUI('group')} value={userData.group} onChange={e => setUserData({...userData, group: e.target.value})} className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 focus:border-[#004030] dark:focus:border-[#D8C3A5] outline-none font-bold"/>
+          <input type="text" placeholder={tUI('studentId')} value={userData.id} onChange={e => setUserData({...userData, id: e.target.value})} className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 focus:border-[#004030] dark:focus:border-[#D8C3A5] outline-none font-bold"/>
+          <input type="text" placeholder={tUI('name')} value={userData.name} onChange={e => setUserData({...userData, name: e.target.value})} className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 focus:border-[#004030] dark:focus:border-[#D8C3A5] outline-none font-bold"/>
+        </div>
+        <div className="flex gap-4">
+           <button onClick={handleExportCSV} className="px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] rounded-lg font-bold shadow-md hover:bg-[#002b20] dark:hover:bg-white flex items-center gap-2 transition-all cursor-pointer"><IconDownload size={20}/> Export Research Data</button>
+           <button onClick={() => window.location.reload()} className="px-8 py-3 rounded-lg font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors cursor-pointer">{tUI('resetData')}</button>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center pt-8 mt-12 border-t border-slate-300 dark:border-slate-700">
+        <button onClick={() => navTo(8)} className="flex items-center gap-2 px-6 py-3 font-serif font-bold text-slate-500 hover:text-[#004030] dark:hover:text-[#D8C3A5] transition-colors uppercase tracking-wider text-sm cursor-pointer">
+          <IconChevronLeft size={20}/> {tUI('prevPage')}
+        </button>
+        <button onClick={() => navTo(0)} className="flex items-center gap-2 px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] rounded-lg font-serif font-bold shadow-md hover:bg-[#002b20] dark:hover:bg-white transition-colors uppercase tracking-wider text-sm cursor-pointer">
+          Return to Summary <IconChevronRight size={20}/>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const ResourcesView = ({ tUI, navTo }) => {
+  return (
+    <div className="max-w-5xl mx-auto pb-12 animate-fade-in mt-4">
+       <h1 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] mb-6">{tUI('externalResources')}</h1>
+       <div className="p-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col gap-5">
+          <a href="https://www.accton.com/tw/" target="_blank" rel="noreferrer" className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-lg hover:border-[#004030] dark:hover:border-[#D8C3A5] border border-slate-200 dark:border-slate-700 text-[#004030] dark:text-[#D8C3A5] font-bold flex items-center justify-between transition-all shadow-sm">
+            <span>Accton Technology (智邦科技) Official Portal</span> <IconGlobe size={22}/>
+          </a>
+          <a href="https://www.opencompute.org/" target="_blank" rel="noreferrer" className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-lg hover:border-[#004030] dark:hover:border-[#D8C3A5] border border-slate-200 dark:border-slate-700 text-[#004030] dark:text-[#D8C3A5] font-bold flex items-center justify-between transition-all shadow-sm">
+            <span>Open Compute Project (OCP 開放運算計畫)</span> <IconGlobe size={22}/>
+          </a>
+          <a href="https://hbr.org/1979/03/how-competitive-forces-shape-strategy" target="_blank" rel="noreferrer" className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-lg hover:border-[#004030] dark:hover:border-[#D8C3A5] border border-slate-200 dark:border-slate-700 text-[#004030] dark:text-[#D8C3A5] font-bold flex items-center justify-between transition-all shadow-sm">
+            <span>Harvard Business Review: Porter's Five Forces (HBR 波特五力分析)</span> <IconGlobe size={22}/>
+          </a>
+          <a href="https://www.weforum.org/agenda/macroeconomics/" target="_blank" rel="noreferrer" className="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-lg hover:border-[#004030] dark:hover:border-[#D8C3A5] border border-slate-200 dark:border-slate-700 text-[#004030] dark:text-[#D8C3A5] font-bold flex items-center justify-between transition-all shadow-sm">
+            <span>World Economic Forum: Macro Environment (世界經濟論壇總體經濟)</span> <IconGlobe size={22}/>
+          </a>
+       </div>
+
+       <div className="flex justify-between items-center pt-8 mt-12 border-t border-slate-300 dark:border-slate-700">
+        <button onClick={() => navTo(7)} className="flex items-center gap-2 px-6 py-3 font-serif font-bold text-slate-500 hover:text-[#004030] dark:hover:text-[#D8C3A5] transition-colors uppercase tracking-wider text-sm cursor-pointer">
+          <IconChevronLeft size={20}/> {tUI('prevPage')}
+        </button>
+        <button onClick={() => navTo(9)} className="flex items-center gap-2 px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] rounded-lg font-serif font-bold shadow-md hover:bg-[#002b20] dark:hover:bg-white transition-colors uppercase tracking-wider text-sm cursor-pointer">
+          {tUI('nextPage')} <IconChevronRight size={20}/>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/* ===== MAIN APP COMPONENT ===== */
+function App() {
+  useSecurity(); 
+  
+  const [lang, setLang] = useState('en'); 
+  const [isDark, setIsDark] = useState(true); // 預設深色
+  const [currentPage, setCurrentPage] = useState(0); 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [speechSynthesisActive, setSpeechSynthesisActive] = useState(false);
+  
+  // Analytics State - Tracked per module (10 modules: 0-9)
+  const [analyticsData, setAnalyticsData] = useState(() => {
+    let initial = {};
+    for (let i = 0; i <= 9; i++) {
+        initial[i] = { time: 0, clicks: 0, cardsViewed: 0, quizCorrect: 0, quizAnswered: 0 };
+    }
+    return initial;
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+  }, [isDark]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+        setAnalyticsData(prev => ({
+            ...prev,
+            [currentPage]: { ...prev[currentPage], time: prev[currentPage].time + 1 }
+        }));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [currentPage]);
+
+  const handleGlobalClick = useCallback(() => {
+    setAnalyticsData(prev => ({
+        ...prev,
+        [currentPage]: { ...prev[currentPage], clicks: prev[currentPage].clicks + 1 }
+    }));
+  }, [currentPage]);
+
+  const t = useCallback((keyDict) => keyDict[lang], [lang]);
+  const tUI = useCallback((key) => DICT.UI[key][lang], [lang]);
+
+  const speakText = useCallback((text = null) => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    synth.cancel();
+    
+    let contentToRead = text;
+    if (!contentToRead) {
+        if (currentPage === 0) {
+            contentToRead = `${DICT.OVERVIEW.title[lang]}. ${DICT.OVERVIEW.content[lang]}`;
+        } else if (currentPage >= 1 && currentPage <= 6) {
+            const th = DICT.THEMES[currentPage-1];
+            contentToRead = `${th.title[lang]}. ${DICT.UI.highlights[lang]}: ${th.highlights[lang].join(", ")}. ${DICT.UI.description[lang]}: ${th.description[lang]}. ${DICT.UI.wrapUp[lang]}: ${th.wrapUp[lang]}.`;
+        } else {
+            contentToRead = lang === 'en' ? "Please navigate to a theory section to use full page reading." : "請導航至理論章節以使用全頁語音導覽功能。";
+        }
+    }
+
+    const utterance = new SpeechSynthesisUtterance(contentToRead);
+    utterance.lang = lang === 'en' ? 'en-GB' : 'zh-TW';
+    utterance.rate = 1.0;
+    
+    const voices = synth.getVoices();
+    if (lang === 'en') {
+      const enVoice = voices.find(v => v.lang === 'en-GB' && v.name.toLowerCase().includes('male'));
+      if(enVoice) utterance.voice = enVoice;
+    } else {
+      const twVoice = voices.find(v => v.lang === 'zh-TW' && (v.name.toLowerCase().includes('yating') || v.name.toLowerCase().includes('female')));
+      if(twVoice) utterance.voice = twVoice;
+    }
+    
+    utterance.onstart = () => setSpeechSynthesisActive(true);
+    utterance.onend = () => setSpeechSynthesisActive(false);
+    utterance.onerror = () => setSpeechSynthesisActive(false);
+    synth.speak(utterance);
+  }, [lang, currentPage]);
+  
+  const stopSpeak = useCallback(() => {
+    const synth = window.speechSynthesis;
+    if(synth) { 
+      synth.cancel(); 
+      setSpeechSynthesisActive(false); 
+    }
+  }, []);
+
+  const updateCardAnalytics = useCallback((themeId, viewed, clicks) => {
+    setAnalyticsData(prev => ({
+        ...prev,
+        [themeId]: { 
+            ...prev[themeId], 
+            cardsViewed: Math.max(prev[themeId].cardsViewed, viewed),
+            clicks: prev[themeId].clicks + (clicks ? 1 : 0)
+        }
+    }));
+  }, []);
+
+  const updateQuizAnalytics = useCallback((themeId, correct, answered) => {
+    setAnalyticsData(prev => ({
+        ...prev,
+        [themeId]: { 
+            ...prev[themeId], 
+            quizCorrect: Math.max(prev[themeId].quizCorrect, correct),
+            quizAnswered: Math.max(prev[themeId].quizAnswered, answered)
+        }
+    }));
+  }, []);
+
+  const navTo = useCallback((pageIdx) => {
+    stopSpeak();
+    setCurrentPage(pageIdx);
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [stopSpeak]);
+
+  const renderPage = () => {
+    if (currentPage === 0) {
+      return <OverviewView t={t} tUI={tUI} navTo={navTo} lang={lang} />;
+    }
+    if (currentPage >= 1 && currentPage <= 6) {
+      return <ThemeContentView key={currentPage} themeData={DICT.THEMES[currentPage-1]} t={t} tUI={tUI} lang={lang} navTo={navTo} updateCardAnalytics={updateCardAnalytics} updateQuizAnalytics={updateQuizAnalytics} />;
+    }
+    if (currentPage === 7) return <InteractiveLabView lang={lang} tUI={tUI} navTo={navTo} />;
+    if (currentPage === 8) return <ResourcesView tUI={tUI} navTo={navTo} />;
+    if (currentPage === 9) return <AnalyticsView lang={lang} tUI={tUI} analyticsData={analyticsData} navTo={navTo} />;
+    return <OverviewView t={t} tUI={tUI} navTo={navTo} lang={lang} />;
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen" onClick={handleGlobalClick}>
+      <TopHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} navTo={navTo} tUI={tUI} speakText={speakText} stopSpeak={stopSpeak} speechSynthesisActive={speechSynthesisActive} lang={lang} setLang={setLang} isDark={isDark} setIsDark={setIsDark} />
+      <DrawerMenu menuOpen={menuOpen} navTo={navTo} tUI={tUI} t={t} currentPage={currentPage} />
+      
+      {menuOpen && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 transition-opacity" onClick={() => setMenuOpen(false)}></div>}
+      
+      <main className="flex-1 pt-16 pb-16 px-4 transition-colors duration-300">
+        {renderPage()}
+      </main>
+
+      <FooterBlock />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
